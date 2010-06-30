@@ -6,7 +6,7 @@ def main(argv):
     
     # Determine what platform we're on
     plat = sys.platform
-    mod = __import__('.'.join('platforms', plat), fromlist=plat)
+    mod = __import__('.'.join(['platforms', plat]), fromlist=plat)
     mod.main(argv)
 
 if __name__ == '__main__':
