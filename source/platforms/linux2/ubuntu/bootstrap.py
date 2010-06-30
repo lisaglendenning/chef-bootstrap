@@ -1,5 +1,5 @@
 
-import subprocess, urllib
+import subprocess, urllib, shutil, time
 
 CHEF_REPOSITORY = 'http://apt.opscode.com/'
 CHEF_REPOSITORY_KEY = 'http://apt.opscode.com/packages@opscode.com.gpg.key'
@@ -11,9 +11,16 @@ CHEF_REPOSITORY_ARGS = {
 }
 
 def install_repository(version):
-    args = ['deb', CHEF_REPOSITORY]
-    args.extend(CHEF_REPOSITORY_ARGS[version])
-    subprocess.check_call(args)
+    # modify local repo list
+    repo = ['deb', CHEF_REPOSITORY]
+    repo.extend(CHEF_REPOSITORY_ARGS[version])
+    source = '/etc/apt/sources.list'
+    backup = '/etc/apt/sources.list.%d' % int(time.time())
+    shutil.copymode(source, backup)
+    sources = open(source, 'a')
+    sources.write(' '.join(repo))
+    sources.write('\n')
+    sources.close()
     
     # add key
     keyfile, headers = urllib.urlretrieve(CHEF_REPOSITORY_KEY)
