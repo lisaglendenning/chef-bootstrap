@@ -39,7 +39,7 @@ def install_repository(argv, version):
     subprocess.check_call(args)
 
 def install_chef(argv):
-    args = ['apt-get', 'install']
+    args = ['apt-get', '-y', 'install']
     args.extend(CHEF_CLIENT_PACKAGES)
     subprocess.check_call(args)
 
