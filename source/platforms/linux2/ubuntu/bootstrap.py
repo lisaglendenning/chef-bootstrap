@@ -16,7 +16,7 @@ def install_repository(version):
     repo.extend(CHEF_REPOSITORY_ARGS[version])
     source = '/etc/apt/sources.list'
     backup = '/etc/apt/sources.list.%d' % int(time.time())
-    shutil.copymode(source, backup)
+    shutil.copy(source, backup)
     sources = open(source, 'a')
     sources.write(' '.join(repo))
     sources.write('\n')
