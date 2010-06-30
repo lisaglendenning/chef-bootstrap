@@ -11,6 +11,7 @@ def main(argv):
     outdata, errdata = child.communicate()
     for dist in distributions:
         if re.search(dist, outdata, re.IGNORECASE):
-            mod = __import__(dist)
+            mod = __import__('.'.join([__package__, dist, 'bootstrap']), 
+                                      fromlist='bootstrap')
             mod.main(argv)
             break
