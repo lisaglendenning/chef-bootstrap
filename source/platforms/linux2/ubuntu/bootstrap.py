@@ -9,8 +9,9 @@ CHEF_REPOSITORY_ARGS = {
     '8.10': ('intrepid', 'universe'),
     '8.04': ('hardy', 'universe'), 
 }
+CHEF_CLIENT_PACKAGES = 'rubygems', 'ohai', 'chef'
 
-def install_repository(version):
+def install_repository(argv, version):
     # modify local repo list
     repo = ['deb', CHEF_REPOSITORY]
     repo.extend(CHEF_REPOSITORY_ARGS[version])
@@ -37,6 +38,10 @@ def install_repository(version):
     args = ['apt-get', 'update']
     subprocess.check_call(args)
 
+def install_chef(argv):
+    args = ['apt-get', 'install']
+    args.extend(CHEF_CLIENT_PACKAGES)
+    subprocess.check_call(args)
 
 def main(argv):
     
@@ -46,4 +51,6 @@ def main(argv):
     outdata, errdata = child.communicate()
     version = outdata.split()[1]
     
-    install_repository(version)
+    install_repository(argv, version)
+    install_chef(argv)
+    
