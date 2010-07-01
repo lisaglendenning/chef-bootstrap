@@ -27,7 +27,7 @@ def get_version(argv):
     child = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     outdata, errdata = child.communicate()
     version = outdata.split()[1]
-    version = version.split('.')
+    version = tuple(version.split('.'))
     return version
 
 def install_repository(argv, version):
