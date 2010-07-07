@@ -9,6 +9,12 @@ REPOSITORIES = [{'name': 'epel',
                   'url': 'http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm'}]
 CHEF_CLIENT_PACKAGES = ['chef',]
 
+def execute(args, **kwargs):
+    child = subprocess.Popen(args, **kwargs)
+    child.communicate()
+    if child.returncode != 0:
+        raise RuntimeError("%s: returned %d" % (' '.join(args), child.returncode))
+
 def install_repository(argv, system, dist):
     version = tuple(dist[1].split('.'))
     if version < REDHAT_MIN_VERSION:
@@ -17,12 +23,12 @@ def install_repository(argv, system, dist):
     # install needed repositories
     for repo in REPOSITORIES:
         args = ['rpm', '-Uvh', repo['url']]
-        subprocess.check_call(args)
+        execute(args)
     
 def install_chef(argv, system, dist):
     args = ['yum', '-y', 'install']
     args.extend(CHEF_CLIENT_PACKAGES)
-    subprocess.check_call(args)
+    execute(args)
     
 def main(*args):
     install_repository(*args)

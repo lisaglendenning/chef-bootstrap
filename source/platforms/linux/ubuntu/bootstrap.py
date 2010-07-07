@@ -14,6 +14,12 @@ CHEF_REPOSITORY_COMPONENTS = {
 }
 CHEF_CLIENT_PACKAGES = ['chef',]
 
+def execute(args, **kwargs):
+    child = subprocess.Popen(args, **kwargs)
+    child.communicate()
+    if child.returncode != 0:
+        raise RuntimeError("%s: returned %d" % (' '.join(args), child.returncode))
+
 def install_repository(argv, system, dist):
     version = tuple(dist[1].split('.'))
     if version < UBUNTU_MIN_VERSION:
@@ -39,11 +45,11 @@ def install_repository(argv, system, dist):
     # add key
     keyfile, headers = urllib.urlretrieve(CHEF_REPOSITORY_KEY)
     args = ['apt-key', 'add', keyfile]
-    subprocess.check_call(args)
+    execute(args)
 
     # update packages
     args = ['apt-get', 'update']
-    subprocess.check_call(args)
+    execute(args)
     
 def install_chef(argv, system, dist):
     # TODO: accept an optional argument as the chef uri
@@ -55,7 +61,7 @@ def install_chef(argv, system, dist):
     
     args = ['apt-get', '-y', 'install']
     args.extend(CHEF_CLIENT_PACKAGES)
-    subprocess.check_call(args)
+    execute(args)
 
 #
 # Testing repository information (currently unused)
