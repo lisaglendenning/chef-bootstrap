@@ -4,7 +4,7 @@ import platform
 def main(argv, system):
     
     # Detect what distribution we're running
-    dist = platform.dist().lower()
+    dist = platform.dist()[0].lower()
     try:
         mod = __import__('.'.join([__package__, dist, 'bootstrap']), 
                          fromlist='bootstrap')
