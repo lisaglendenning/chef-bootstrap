@@ -11,7 +11,7 @@ CHEF_CLIENT_PACKAGES = ['chef',]
 
 def install_repository(argv, system, dist):
     version = tuple(dist[1].split('.'))
-    if dist[1] < REDHAT_MIN_VERSION:
+    if version < REDHAT_MIN_VERSION:
         raise RuntimeError('Red Hat version %s < %s' % (version, REDHAT_MIN_VERSION))
     
     # install needed repositories
