@@ -11,9 +11,10 @@ CHEF_CLIENT_PACKAGES = ['chef',]
 
 def execute(args, **kwargs):
     child = subprocess.Popen(args, **kwargs)
-    child.communicate()
+    outs = child.communicate()
     if child.returncode != 0:
         raise RuntimeError("%s: returned %d" % (' '.join(args), child.returncode))
+    return outs
 
 def install_repository(argv, system, dist):
     version = tuple(dist[1].split('.'))
@@ -22,6 +23,16 @@ def install_repository(argv, system, dist):
     
     # install needed repositories
     for repo in REPOSITORIES:
+        # already installed ?
+        package = repo['url'].rsplit('/', 1)[1]
+        package_name = package.split('.', 1)[0]
+        args = ['rpm', '-qa', '|', 'grep', package_name]
+        try:
+            execute(args, shell=True)
+        except RuntimeError:
+            pass
+        else:
+            continue
         args = ['rpm', '-Uvh', repo['url']]
         execute(args)
     

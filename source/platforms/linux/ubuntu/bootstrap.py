@@ -16,9 +16,10 @@ CHEF_CLIENT_PACKAGES = ['chef',]
 
 def execute(args, **kwargs):
     child = subprocess.Popen(args, **kwargs)
-    child.communicate()
+    outs = child.communicate()
     if child.returncode != 0:
         raise RuntimeError("%s: returned %d" % (' '.join(args), child.returncode))
+    return outs
 
 def install_repository(argv, system, dist):
     version = tuple(dist[1].split('.'))
