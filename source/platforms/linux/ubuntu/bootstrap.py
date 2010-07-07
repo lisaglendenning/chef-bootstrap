@@ -15,7 +15,7 @@ CHEF_REPOSITORY_COMPONENTS = {
 CHEF_CLIENT_PACKAGES = ['chef',]
 
 def install_repository(argv, system, dist):
-    version = dist[1].split('.')
+    version = tuple(dist[1].split('.'))
     if version < UBUNTU_MIN_VERSION:
         raise RuntimeError('Ubuntu version %s < %s' % (version, UBUNTU_MIN_VERSION))
     
@@ -65,7 +65,7 @@ def install_chef(argv, system, dist):
 #CHEF_CLIENT_PACKAGES = ['chef',]
 #
 #def install_repository(argv, system, dist):
-#    version = dist[1].split('.')
+#    version = tuple(dist[1].split('.'))
 #    if version < UBUNTU_MIN_VERSION:
 #        raise RuntimeError('Ubuntu version %s < %s' % (version, UBUNTU_MIN_VERSION))
 #    
