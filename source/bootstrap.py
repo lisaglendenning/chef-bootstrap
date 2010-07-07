@@ -8,7 +8,7 @@ def main(argv):
     system = platform.system().lower()
     try:
         mod = __import__('.'.join(['platforms', system, 'bootstrap']),
-                         fromlist='bootstrap')
+                         globals(), locals(), 'bootstrap')
     except ImportError:
         raise RuntimeError("Unsupported system: %s" % system)
     else:
