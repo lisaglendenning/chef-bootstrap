@@ -7,7 +7,7 @@ def main(argv):
     # Detect the OS
     system = platform.system().lower()
     try:
-        mod = __import__('.'.join([__package__, 'platforms', system, 'bootstrap']),
+        mod = __import__('.'.join(['platforms', system, 'bootstrap']),
                          fromlist='bootstrap')
     except ImportError:
         raise RuntimeError("Unsupported system: %s" % system)
