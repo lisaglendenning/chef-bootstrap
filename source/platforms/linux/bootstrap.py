@@ -6,7 +6,8 @@ def main(argv, system):
     # Detect what distribution we're running
     dist = platform.dist()[0].lower()
     try:
-        mod = __import__('.'.join([__name__, dist, 'bootstrap']), 
+        package = __name__.rsplit('.')[0]
+        mod = __import__('.'.join([package, dist, 'bootstrap']), 
                          globals(), locals(), 'bootstrap')
         mod.main(argv, system, dist)
     except ImportError:
