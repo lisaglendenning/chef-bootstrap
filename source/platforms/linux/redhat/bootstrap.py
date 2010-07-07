@@ -26,12 +26,9 @@ def install_repository(argv, system, dist):
         # already installed ?
         package = repo['url'].rsplit('/', 1)[1]
         package_name = package.split('.', 1)[0]
-        args = ['rpm', '-qa', '|', 'grep', package_name]
-        try:
-            execute(args, shell=True)
-        except RuntimeError:
-            pass
-        else:
+        args = ['rpm', '-qa']
+        installed = execute(args)[0].split()
+        if package_name in installed:
             continue
         args = ['rpm', '-Uvh', repo['url']]
         execute(args)
