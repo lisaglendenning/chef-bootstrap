@@ -7,7 +7,7 @@ def main(argv, system):
     dist = platform.dist()[0].lower()
     try:
         mod = __import__('.'.join([__name__, dist, 'bootstrap']), 
-                         fromlist='bootstrap')
+                         globals(), locals(), 'bootstrap')
         mod.main(argv, system, dist)
     except ImportError:
         raise RuntimeError("Unsupported %s distribution: %s" % (system, dist))
