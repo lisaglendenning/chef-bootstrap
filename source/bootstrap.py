@@ -5,9 +5,10 @@ import sys, platform
 def main(argv):
     
     # Detect the OS
-    system = platform.system().lower()
+    system = platform.system()
     try:
-        mod = __import__('.'.join(['platforms', system, 'bootstrap']),
+        modname = system.lower()
+        mod = __import__('.'.join(['platforms', modname, 'bootstrap']),
                          globals(), locals(), 'bootstrap')
     except ImportError:
         raise RuntimeError("Unsupported system: %s" % system)
