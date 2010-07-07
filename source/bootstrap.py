@@ -5,7 +5,7 @@ import sys, platform
 def main(argv):
     
     # Detect the OS
-    system = platform.system()
+    system = platform.system().lower()
     try:
         mod = __import__('.'.join([__package__, 'platforms', system, 'bootstrap']),
                          fromlist='bootstrap')

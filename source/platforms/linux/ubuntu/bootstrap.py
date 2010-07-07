@@ -1,15 +1,6 @@
 
 import subprocess, urllib, shutil, time, re
 
-# This may be part of the dist tuple ? will have to check
-UBUNTU_VERSIONS = {
-    ('10','04'): 'lucid',
-    ('9','10'): 'karmic',
-    ('9','04'): 'jaunty',
-    ('8','10'): 'intrepid',
-    ('8','04'): 'hardy', 
-}
-
 UBUNTU_MIN_VERSION = ('8', '04')
 
 CHEF_REPOSITORY = 'http://apt.opscode.com/'
@@ -24,13 +15,13 @@ CHEF_REPOSITORY_COMPONENTS = {
 CHEF_CLIENT_PACKAGES = ['chef',]
 
 def install_repository(argv, system, dist):
-    if dist[1] < UBUNTU_MIN_VERSION:
-        raise RuntimeError('Ubuntu version %s < %s' % (dist[1], UBUNTU_MIN_VERSION))
+    version = dist[1].split('.')
+    if version < UBUNTU_MIN_VERSION:
+        raise RuntimeError('Ubuntu version %s < %s' % (version, UBUNTU_MIN_VERSION))
     
-    version_name = UBUNTU_VERSIONS[dist[1]]
     # modify local repo list
     repo = ['deb', CHEF_REPOSITORY]
-    repo.extend(CHEF_REPOSITORY_COMPONENTS[version_name])
+    repo.extend(CHEF_REPOSITORY_COMPONENTS[dist[2]])
     repo = ' '.join(repo)
     source = '/etc/apt/sources.list'
     f = open(source)
@@ -74,8 +65,9 @@ def install_chef(argv, system, dist):
 #CHEF_CLIENT_PACKAGES = ['chef',]
 #
 #def install_repository(argv, system, dist):
-#    if dist[1] < UBUNTU_MIN_VERSION:
-#        raise RuntimeError('Ubuntu version %s < %s' % (dist[1], UBUNTU_MIN_VERSION))
+#    version = dist[1].split('.')
+#    if version < UBUNTU_MIN_VERSION:
+#        raise RuntimeError('Ubuntu version %s < %s' % (version, UBUNTU_MIN_VERSION))
 #    
 #    args = ['add-apt-repository', CHEF_REPOSITORY]
 #    subprocess.check_call(args)
