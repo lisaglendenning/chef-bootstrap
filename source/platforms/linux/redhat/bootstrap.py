@@ -27,7 +27,7 @@ def install_repository(argv, system, dist):
         package = repo['url'].rsplit('/', 1)[1]
         package_name = package.split('.', 1)[0]
         args = ['rpm', '-qa']
-        installed = execute(args)[0].split()
+        installed = execute(args, stdout=subprocess.PIPE)[0].split()
         if package_name in installed:
             continue
         args = ['rpm', '-Uvh', repo['url']]
