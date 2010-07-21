@@ -1,5 +1,5 @@
 
-import os.path, tempfile
+import os.path, subprocess
 
 from util import *
 
@@ -40,11 +40,8 @@ def install_chef_client(opts, args):
     # Preseed
     execute(['apt-get', '-y', 'install', 'debconf'])
     preseed = [['chef', 'chef/chef_server_url', 'string', opts.url]]
-    f = tempfile.NamedTemporaryFile(mode='w')
-    for answer in preseed:
-        f.write('%s\n' % ' '.join(answer))
-    execute(['debconf-set-selections', f.name])
-    f.close()
+    input = '%s\n' % '\n'.join([' '.join(line) for line in preseed])
+    execute(['debconf-set-selections'], input=input)
     
     os.environ['DEBIAN_FRONTEND'] = 'noninteractive'
     args = ['apt-get', '-y', 'install']

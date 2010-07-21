@@ -1,9 +1,9 @@
 
 import subprocess, platform
 
-def execute(args, **kwargs):
+def execute(args, input=None, **kwargs):
     child = subprocess.Popen(args, **kwargs)
-    outs = child.communicate()
+    outs = child.communicate(input)
     if child.returncode != 0:
         raise RuntimeError("%s: returned %d" % (' '.join(args), child.returncode))
     return outs
