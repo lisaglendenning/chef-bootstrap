@@ -1,5 +1,5 @@
 
-import os.path
+import os.path, tempfile
 
 from util import *
 
@@ -27,26 +27,35 @@ def add_repo(repo):
 
 
 def install_chef(opts, args):
+    install_chef_client(opts, args)
     if opts.server:
         install_chef_server(opts, args)
-    else:
-        install_chef_client(opts, args)
 
 
 def install_chef_client(opts, args):
-    # TODO: accept an optional argument as the chef uri
     # The following settings are available to preseed package installations for non-interactive installations.
     # chef/chef_server_url - the URI for the Chef Server
-    # chef-solr/amqp_password - password for chef vhost in RabbitMQ.
-    # chef-server-webui/admin_password - password for "admin" user in Chef Server WebUI, must be 6 characters.
     # Preseed settings can be specified with debconf-set-selections.
     
+    # Preseed
+    execute(['apt-get', '-y', 'install', 'debconf'])
+    preseed = [['chef', 'chef/chef_server_url', 'string', opts.url]]
+    f = tempfile.NamedTemporaryFile(mode='w')
+    for answer in preseed:
+        f.write('%s\n' % '\t'.join(answer))
+    args = ['debconf-set-selections', f.name]
+    f.close()
+    
+    os.environ['DEBIAN_FRONTEND'] = 'noninteractive'
     args = ['apt-get', '-y', 'install']
     args.extend(CHEF_CLIENT_PACKAGES)
     execute(args)
 
 
 def install_chef_server(opts, args):
+    # chef-solr/amqp_password - password for chef vhost in RabbitMQ.
+    # chef-server-webui/admin_password - password for "admin" user in Chef Server WebUI, must be 6 characters.
+
     args = ['apt-get', '-y', 'install']
     args.extend(CHEF_CLIENT_PACKAGES)
     args.extend(CHEF_SERVER_PACKAGES)

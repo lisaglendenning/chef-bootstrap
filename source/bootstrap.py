@@ -13,6 +13,8 @@ def configure(argv):
                       help="specify os-specific distribution")
     parser.add_option("-s", "--server", dest="server", action="store_true",
                       default=False, help="install server")
+    parser.add_option("-u", "--url", dest="url", metavar="url",
+                      help="specify the Chef server url")
     parser.add_option("-v", "--version", dest="version", metavar="VERSION",
                       help="specify the Chef version to install")
     return parser.parse_args()
@@ -24,6 +26,8 @@ def main(argv):
     sys.path.insert(0, os.path.dirname(__file__))
     
     opts, args = configure(argv)
+    if not opts.url:
+        opts.url = "http://127.0.0.1:4000"
     if not opts.os:   
         opts.os = util.guess_os()
     try:
