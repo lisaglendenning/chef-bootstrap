@@ -8,6 +8,8 @@ MIN_VERSION = ('5', '0', '5')
 # TODO: I don't know how to detect the testing and unstable versions
 CHEF_REPOSITORY_COMPONENTS = ('lenny', 'main')
 
+# Note: chef-server WILL NOT install on Debian lenny
+
 def install_repository(opts, args):
     check_version(opts.dist, MIN_VERSION)
     

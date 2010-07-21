@@ -1,5 +1,5 @@
 
-import re, time, os.path
+import os.path
 
 from util import *
 
@@ -7,7 +7,7 @@ from util import *
 CHEF_REPOSITORY = 'http://apt.opscode.com/'
 CHEF_REPOSITORY_KEY = 'http://apt.opscode.com/packages@opscode.com.gpg.key'
 CHEF_CLIENT_PACKAGES = ['chef',]
-CHEF_SERVER_PACKAGES = ['chef-solr', 'chef-server-api', 'chef-server-webui'] # doing chef-server doesn't work
+CHEF_SERVER_PACKAGES = ['chef-server'] # doing chef-server doesn't work
 
 
 def check_version(dist, min):
