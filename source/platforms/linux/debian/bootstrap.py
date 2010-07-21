@@ -5,8 +5,8 @@ from util import *
 from platforms.linux.debian.common import *
 
 MIN_VERSION = ('5', '0', '5')
-
-CHEF_REPOSITORY_COMPONENTS = ('debian', 'main')
+# TODO: I don't know how to test for the testing and unstable versions
+CHEF_REPOSITORY_COMPONENTS = ('lenny', 'main')
 
 def install_repository(opts, args):
     check_version(opts.dist, MIN_VERSION)
