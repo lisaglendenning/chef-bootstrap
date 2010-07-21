@@ -43,7 +43,7 @@ def install_chef_client(opts, args):
     f = tempfile.NamedTemporaryFile(mode='w')
     for answer in preseed:
         f.write('%s\n' % ' '.join(answer))
-    args = ['debconf-set-selections', f.name]
+    execute(['debconf-set-selections', f.name])
     f.close()
     
     os.environ['DEBIAN_FRONTEND'] = 'noninteractive'
