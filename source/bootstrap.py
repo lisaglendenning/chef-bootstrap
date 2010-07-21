@@ -13,8 +13,10 @@ def configure(argv):
                       help="specify os-specific distribution")
     parser.add_option("-s", "--server", dest="server", action="store_true",
                       default=False, help="install server")
-    parser.add_option("-u", "--url", dest="url", metavar="url",
+    parser.add_option("-u", "--url", dest="url", metavar="URL",
                       help="specify the Chef server url")
+    parser.add_option("-c", "--name", dest="name", metavar="NAME",
+                      help="specify the Chef client name")
     parser.add_option("-v", "--version", dest="version", metavar="VERSION",
                       help="specify the Chef version to install")
     return parser.parse_args()

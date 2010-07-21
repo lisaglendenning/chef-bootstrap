@@ -1,5 +1,5 @@
 
-import os.path, subprocess
+import os.path, subprocess, shutil, time
 
 from util import *
 
@@ -41,6 +41,21 @@ def install_chef_client(opts, args):
     args = ['yum', '-y', '--enablerepo=elff-testing', 'install']
     args.extend(CHEF_CLIENT_PACKAGES)
     execute(args)
+    
+    # Set name explicitly
+    if opts.name:
+        path = '/etc/sysconfig/chef-client'
+        backup = '%s.%d' % (path, int(time.time()))
+        shutil.copy(path, backup)
+        f = open(path, 'r')
+        lines = f.readlines()
+        f.close()
+        for i in xrange(len(lines)):
+            if lines[i].find('OPTIONS') != -1:
+                lines[i] = "OPTIONS=\"%s\"" % opts.name
+        f = open(path, 'w')
+        f.writelines(lines)
+        f.close()
 
 
 def install_chef_server(opts, args):
