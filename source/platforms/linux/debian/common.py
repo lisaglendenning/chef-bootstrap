@@ -1,5 +1,5 @@
 
-import shutil, re, time
+import re, time, os.path
 
 from util import *
 
@@ -18,17 +18,12 @@ def check_version(dist, min):
 
 # modify local repo list
 def add_repo(repo):
-    source = '/etc/apt/sources.list'
-    f = open(source)
-    for line in f:
-        if re.search(repo, line):
-            # assume the repository is already installed
-            return
-    backup = '/etc/apt/sources.list.%d' % int(time.time())
-    shutil.copy(source, backup)
-    sources = open(source, 'a')
-    sources.write('%s\n' % repo)
-    sources.close()
+    source = '/etc/apt/sources.list.d/opscode.list'
+    if os.path.exists(source):
+        return
+    f = open(source, 'w')
+    f.write('%s\n' % repo)
+    f.close()
 
 
 def install_chef(opts, args):
