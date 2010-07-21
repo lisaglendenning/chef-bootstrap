@@ -52,7 +52,7 @@ def install_chef_client(opts, args):
         f.close()
         for i in xrange(len(lines)):
             if lines[i].find('OPTIONS') != -1:
-                lines[i] = "OPTIONS=\"%s\"\n" % opts.name
+                lines[i] = "OPTIONS=\"-N %s\"\n" % opts.name
         f = open(path, 'w')
         f.writelines(lines)
         f.close()
