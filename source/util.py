@@ -2,6 +2,8 @@
 import subprocess, platform
 
 def execute(args, input=None, **kwargs):
+    if input:
+        kwargs['stdin'] = subprocess.PIPE
     child = subprocess.Popen(args, **kwargs)
     outs = child.communicate(input)
     if child.returncode != 0:
