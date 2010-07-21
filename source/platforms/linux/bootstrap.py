@@ -14,7 +14,7 @@ def main(opts, args):
         except Exception:
             raise ValueError(opts.dist)
     else:
-        opts.dist = util.guess_dist()
+        opts.dist = util.guess_dist(opts.os)
         
     try:
         package = __name__.rsplit('.', 1)[0]
