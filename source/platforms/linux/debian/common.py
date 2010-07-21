@@ -42,7 +42,7 @@ def install_chef_client(opts, args):
     preseed = [['chef', 'chef/chef_server_url', 'string', opts.url]]
     f = tempfile.NamedTemporaryFile(mode='w')
     for answer in preseed:
-        f.write('%s\n' % '\t'.join(answer))
+        f.write('%s\n' % ' '.join(answer))
     args = ['debconf-set-selections', f.name]
     f.close()
     
