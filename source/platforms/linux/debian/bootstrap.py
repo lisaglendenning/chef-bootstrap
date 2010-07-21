@@ -5,7 +5,7 @@ from util import *
 from platforms.linux.debian.common import *
 
 MIN_VERSION = ('5', '0', '5')
-# TODO: I don't know how to test for the testing and unstable versions
+# TODO: I don't know how to detect the testing and unstable versions
 CHEF_REPOSITORY_COMPONENTS = ('lenny', 'main')
 
 def install_repository(opts, args):

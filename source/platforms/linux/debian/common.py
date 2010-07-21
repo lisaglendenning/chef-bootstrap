@@ -48,7 +48,7 @@ def install_chef_client(opts, args):
 
 def install_chef_server(opts, args):
     args = ['apt-get', '-y', 'install']
-    args.extend(CHEF_CLIENT_PACKAGES)
+    args.extend(CHEF_SERVER_PACKAGES)
     execute(args)
 
     
