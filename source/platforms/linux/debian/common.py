@@ -7,7 +7,7 @@ from util import *
 CHEF_REPOSITORY = 'http://apt.opscode.com/'
 CHEF_REPOSITORY_KEY = 'http://apt.opscode.com/packages@opscode.com.gpg.key'
 CHEF_CLIENT_PACKAGES = ['chef',]
-CHEF_SERVER_PACKAGES = ['chef-server'] # doing chef-server doesn't work
+CHEF_SERVER_PACKAGES = ['chef-server']
 
 
 def check_version(dist, min):
