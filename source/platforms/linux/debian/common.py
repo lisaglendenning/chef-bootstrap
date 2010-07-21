@@ -33,10 +33,6 @@ def install_chef(opts, args):
 
 
 def install_chef_client(opts, args):
-    # The following settings are available to preseed package installations for non-interactive installations.
-    # chef/chef_server_url - the URI for the Chef Server
-    # Preseed settings can be specified with debconf-set-selections.
-    
     # Preseed
     execute(['apt-get', '-y', 'install', 'debconf'])
     preseed = [['chef', 'chef/chef_server_url', 'string', opts.url]]
@@ -50,6 +46,7 @@ def install_chef_client(opts, args):
 
 
 def install_chef_server(opts, args):
+    # preseed settings:
     # chef-solr/amqp_password - password for chef vhost in RabbitMQ.
     # chef-server-webui/admin_password - password for "admin" user in Chef Server WebUI, must be 6 characters.
 
