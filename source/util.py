@@ -10,7 +10,7 @@ def execute(args, **kwargs):
 
 # Detect the OS
 def guess_os():
-    return platform.system().tolower()
+    return platform.system().lower()
 
 # Detect the OS distribution
 def guess_dist(os):
