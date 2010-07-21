@@ -9,7 +9,7 @@ def install_repository(opts, args):
     check_version(opts.dist, MIN_VERSION)
     
     for repo in REPOSITORIES:
-        install_repo[repo['url']]
+        install_repo(repo['url'])
 
     
 def main(*args):
