@@ -39,8 +39,7 @@ def install_chef(opts, args):
 
 
 def install_chef_client(opts, args):
-    # Note: 0.9 packages are in testing
-    args = ['yum', '-y', '--enablerepo=elff-testing', 'install']
+    args = ['yum', '-y', 'install']
     args.extend(CHEF_CLIENT_PACKAGES)
     execute(args)
     
@@ -62,8 +61,7 @@ def install_chef_client(opts, args):
 
 
 def install_chef_server(opts, args):
-    # Note: 0.9 packages are in testing
-    args = ['yum', '-y', '--enablerepo=elff-testing', 'install']
+    args = ['yum', '-y', 'install']
     args.extend(CHEF_SERVER_PACKAGES)
     execute(args)
     start_services(CHEF_SERVER_SERVICES)
