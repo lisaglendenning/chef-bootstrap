@@ -19,6 +19,8 @@ def configure(argv):
                       help="specify the Chef client name")
     parser.add_option("-v", "--version", dest="version", metavar="VERSION",
                       help="specify the Chef version to install")
+    parser.add_option("-w", "--webui", dest="webui", action="store_true",
+                      default=False, help="install webui service")
     return parser.parse_args()
 
 

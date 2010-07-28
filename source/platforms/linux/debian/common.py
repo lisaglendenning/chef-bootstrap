@@ -7,8 +7,8 @@ from util import *
 CHEF_REPOSITORY = 'http://apt.opscode.com/'
 CHEF_REPOSITORY_KEY = 'http://apt.opscode.com/packages@opscode.com.gpg.key'
 CHEF_CLIENT_PACKAGES = ['chef',]
-CHEF_SERVER_PACKAGES = ['chef-server']
-
+CHEF_SERVER_PACKAGES = ['chef-server', 'chef-server-api'] 
+# one of chef-server and chef-server-api is installed depending on whether webui is to be run
 
 def check_version(dist, min):
     version = tuple(dist[1].split('.'))
@@ -52,7 +52,11 @@ def install_chef_server(opts, args):
 
     args = ['apt-get', '-y', 'install']
     args.extend(CHEF_CLIENT_PACKAGES)
-    args.extend(CHEF_SERVER_PACKAGES)
+    if opts.webui:
+        args.append(CHEF_SERVER_PACKAGES[0])
+    else:
+        args.append(CHEF_SERVER_PACKAGES[1])
+    
     execute(args)
 
     

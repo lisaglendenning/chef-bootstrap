@@ -65,6 +65,8 @@ def install_chef_server(opts, args):
     args.extend(CHEF_SERVER_PACKAGES)
     execute(args)
     start_services(CHEF_SERVER_SERVICES)
+    if opts.webui:
+        start_services(['chef-server-webui'])
 
 def start_services(services):
     for svc in services:
