@@ -13,11 +13,11 @@ CHEF_REPOSITORY_COMPONENTS = {
     'hardy': 'main', 
 }
 
-def install_repository(argv, system, dist):
+def install_repository(opts, args):
     check_version(opts.dist, MIN_VERSION)
     
     repo = ['deb', CHEF_REPOSITORY]
-    repo.extend(CHEF_REPOSITORY_COMPONENTS[dist[2]])
+    repo.extend(CHEF_REPOSITORY_COMPONENTS[opts.dist[2]])
     repo = ' '.join(repo)
     add_repo(repo)
     
