@@ -7,6 +7,21 @@ REPOSITORIES = [{'name': 'epel',
                  'url':'http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-3.noarch.rpm'},
                 {'name': 'elff',
                  'url': 'http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm'}]
+FEDORA_RELEASES = [ 
+    ('14', 'Laughlin'),
+    ('13', 'Goddard'),
+    ('12', 'Constantine'),
+    ('11', 'Leonidas'),
+    ('10', 'Cambridge'),
+    ('9', 'Sulphur'),
+    ('8', 'Werewolf'),
+    ('7', 'Moonshine'),
+    ('6', 'Zod'),
+    ('5', 'Bordeaux'),
+    ('4', 'Stentz'),
+    ('3', 'Heidelberg'),
+    ('2', 'Tettnang'),
+    ('1', 'Yarrow')]
 CHEF_CLIENT_PACKAGES = ['chef',]
 CHEF_SERVER_PACKAGES = ['chef-server-api']
 CHEF_CLIENT_SERVICES = ['chef-client']
@@ -17,6 +32,10 @@ def check_version(dist, min):
     version = tuple(dist[1].split('.'))
     if version < min:
         raise RuntimeError('%s version %s < %s' % (dist[0], version, min))
+
+
+def check_fedora(opts, args):
+    return (opts.dist[1], opts.dist[2]) in FEDORA_RELEASES
 
 
 # install repo list

@@ -13,6 +13,11 @@ def install_repository(opts, args):
 
     
 def main(*args):
-    install_repository(*args)
-    install_chef(*args)
-    
+    if check_fedora(*args):
+        import platforms.linux.fedora.bootstrap as mod
+        mod.main(*args)
+    else
+        install_repository(*args)
+        install_chef(*args)
+
+
