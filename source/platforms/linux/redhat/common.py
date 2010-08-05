@@ -81,6 +81,8 @@ def install_chef_server(opts, args):
     execute(args)
     start_services(CHEF_SERVER_SERVICES)
     if opts.webui:
+        args = ['yum', '-y', 'install', 'chef-server-webui']
+        execute(args)
         start_services(['chef-server-webui'])
 
 def start_services(services):
