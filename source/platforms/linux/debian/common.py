@@ -8,12 +8,6 @@ CHEF_REPOSITORY = 'http://apt.opscode.com/'
 CHEF_REPOSITORY_KEY = 'http://apt.opscode.com/packages@opscode.com.gpg.key'
 CHEF_CLIENT_PACKAGES = ['chef',]
 CHEF_SERVER_PACKAGES = ['chef-server', 'chef-server-api'] 
-# one of chef-server and chef-server-api is installed depending on whether webui is to be run
-
-def check_version(dist, min):
-    version = tuple(dist[1].split('.'))
-    if version < min:
-        raise RuntimeError('%s version %s < %s' % (dist[0], version, min))
 
 
 # modify local repo list
@@ -44,7 +38,7 @@ def install_chef_client(opts, args):
     args.extend(CHEF_CLIENT_PACKAGES)
     execute(args)
 
-
+# one of chef-server and chef-server-api is installed depending on whether webui is to be run
 def install_chef_server(opts, args):
     # preseed settings:
     # chef-solr/amqp_password - password for chef vhost in RabbitMQ.

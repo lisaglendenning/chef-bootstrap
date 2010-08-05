@@ -1,5 +1,6 @@
 
 from util import *
+from platforms.linux.common import *
 from platforms.linux.redhat.common import *
 
 MIN_VERSION = ('8')

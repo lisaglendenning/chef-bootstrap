@@ -2,6 +2,7 @@
 import urllib
 
 from util import *
+from platforms.linux.common import *
 from platforms.linux.debian.common import *
 
 MIN_VERSION = ('5', '0', '5')

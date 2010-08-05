@@ -1,5 +1,6 @@
 
 from util import *
+from platforms.linux.common import *
 from platforms.linux.redhat.common import *
 
 MIN_VERSION = ('5', '5')
@@ -16,7 +17,7 @@ def main(*args):
     if check_fedora(*args):
         import platforms.linux.fedora.bootstrap as mod
         mod.main(*args)
-    else
+    else:
         install_repository(*args)
         install_chef(*args)
 

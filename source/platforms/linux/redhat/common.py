@@ -1,12 +1,8 @@
 
-import os.path, subprocess, shutil, time
+import subprocess, shutil, time
 
 from util import *
 
-REPOSITORIES = [{'name': 'epel', 
-                 'url':'http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-3.noarch.rpm'},
-                {'name': 'elff',
-                 'url': 'http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm'}]
 FEDORA_RELEASES = [ 
     ('14', 'Laughlin'),
     ('13', 'Goddard'),
@@ -22,16 +18,16 @@ FEDORA_RELEASES = [
     ('3', 'Heidelberg'),
     ('2', 'Tettnang'),
     ('1', 'Yarrow')]
+
+REPOSITORIES = [{'name': 'epel', 
+                 'url':'http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-3.noarch.rpm'},
+                {'name': 'elff',
+                 'url': 'http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm'}]
 CHEF_CLIENT_PACKAGES = ['chef',]
 CHEF_SERVER_PACKAGES = ['chef-server-api']
 CHEF_CLIENT_SERVICES = ['chef-client']
 CHEF_SERVER_SERVICES = ['couchdb', 'rabbitmq-server', 'chef-solr', 'chef-solr-indexer', 'chef-server']
 
-
-def check_version(dist, min):
-    version = tuple(dist[1].split('.'))
-    if version < min:
-        raise RuntimeError('%s version %s < %s' % (dist[0], version, min))
 
 
 def check_fedora(opts, args):
