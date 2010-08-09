@@ -1,7 +1,4 @@
 
-import urllib
-
-from util import *
 from platforms.linux.common import *
 from platforms.linux.debian.common import *
 
@@ -19,14 +16,8 @@ def install_repository(opts, args):
     repo = ' '.join(repo)
     add_repo(repo)
     
-    # add key
-    keyfile, headers = urllib.urlretrieve(CHEF_REPOSITORY_KEY)
-    args = ['apt-key', 'add', keyfile]
-    execute(args)
-
-    # update packages
-    args = ['apt-get', 'update']
-    execute(args)
+    add_key(CHEF_REPOSITORY_KEY)
+    apt_update()
 
 
 def main(*args):

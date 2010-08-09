@@ -1,7 +1,7 @@
 
 import subprocess, shutil, time
 
-from util import *
+from util import execute
 
 FEDORA_RELEASES = [ 
     ('14', 'Laughlin'),
@@ -29,6 +29,13 @@ CHEF_CLIENT_SERVICES = ['chef-client']
 CHEF_SERVER_SERVICES = ['couchdb', 'rabbitmq-server', 'chef-solr', 'chef-solr-indexer', 'chef-server']
 
 
+def yum_install(packages, options=[]):
+    r"""Takes a list of packages, and optional list of options and installs them using yum."""
+    args = ['yum', '-y'].extend(options)
+    args.append('install')
+    args.extend(packages)
+    execute(args)
+
 
 def check_fedora(opts, args):
     return (opts.dist[1], opts.dist[2]) in FEDORA_RELEASES
@@ -54,9 +61,7 @@ def install_chef(opts, args):
 
 
 def install_chef_client(opts, args):
-    args = ['yum', '-y', 'install']
-    args.extend(CHEF_CLIENT_PACKAGES)
-    execute(args)
+    yum_install(CHEF_CLIENT_PACKAGES)
     
     # Set name explicitly
     if opts.name:
@@ -76,14 +81,12 @@ def install_chef_client(opts, args):
 
 
 def install_chef_server(opts, args):
-    args = ['yum', '-y', 'install']
-    args.extend(CHEF_SERVER_PACKAGES)
-    execute(args)
+    yum_install(CHEF_SERVER_PACKAGES)
     start_services(CHEF_SERVER_SERVICES)
     if opts.webui:
-        args = ['yum', '-y', 'install', 'chef-server-webui']
-        execute(args)
+        yum_install(['chef-server-webui'])
         start_services(['chef-server-webui'])
+
 
 def start_services(services):
     for svc in services:
@@ -92,4 +95,3 @@ def start_services(services):
         args = ['/sbin/chkconfig', svc, 'on']
         execute(args)
 
-        

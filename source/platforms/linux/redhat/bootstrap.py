@@ -1,5 +1,4 @@
 
-from util import *
 from platforms.linux.common import *
 from platforms.linux.redhat.common import *
 
@@ -12,7 +11,7 @@ def install_repository(opts, args):
     for repo in REPOSITORIES:
         install_repo(repo['url'])
 
-    
+
 def main(*args):
     if check_fedora(*args):
         import platforms.linux.fedora.bootstrap as mod
