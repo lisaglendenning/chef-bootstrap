@@ -111,7 +111,7 @@ def gem_install_chef(opts, args):
     # FIXME: this needs to be more parameterized
     GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
     execute(['/usr/sbin/useradd', 'chef'])
-    execute(['chown', 'chef:chef', '-R' '/var/lib/chef'])
+    execute(['chown', 'chef:chef', '-R', '/var/lib/chef'])
     execute(['cp', '%s/distro/redhat/etc/sysconfig/*' % GEMDIR, '/etc/sysconfig'], shell=True)
     execute(['cp', '%s/distro/redhat/etc/init.d/*' % GEMDIR, '/etc/init.d'], shell=True)
     execute(['cp', '%s/distro/common/man/man1/*' % GEMDIR, '/usr/local/share/man/man1'], shell=True)
