@@ -43,7 +43,7 @@ def untarball(url):
 def install_rubygems(opts, args):
     r"""Retrieves and installs rubygems from source."""
     try:
-        util.execute(['gem', '--help'], , stdout=subprocess.PIPE,
+        util.execute(['gem', '--help'], stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE)
     except RuntimeError:    
         extracted = untarball(RUBYGEMS_SOURCE)
