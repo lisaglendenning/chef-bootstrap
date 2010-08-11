@@ -33,9 +33,9 @@ CHEF_SERVER_SERVICES = ['couchdb', 'rabbitmq-server', 'chef-solr', 'chef-solr-in
 GEM_DEV_TOOLS = ['ruby', 'ruby-shadow', 'ruby-ri', 'ruby-rdoc', 'gcc', 'gcc-c++', 'ruby-devel', 'make']
 
 
-def yum_install(packages, options=[]):
+def yum_install(packages, options=['-y']):
     r"""Takes a list of packages, and optional list of options and installs them using yum."""
-    args = ['yum', '-y']
+    args = ['yum']
     args.extend(options)
     args.append('install')
     args.extend(packages)

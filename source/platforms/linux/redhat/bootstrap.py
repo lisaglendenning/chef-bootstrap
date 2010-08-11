@@ -13,5 +13,5 @@ def main(opts, args):
     else:
         check_version(opts.dist, MIN_VERSION)
         for repo in REPOSITORIES:
-            install_repo(repo['url'])
+            install_remote_rpm(repo['url'])
         install_chef(opts, args)

@@ -9,9 +9,9 @@ CHEF_REPOSITORY_KEY = 'http://apt.opscode.com/packages@opscode.com.gpg.key'
 CHEF_CLIENT_PACKAGES = ['chef',]
 CHEF_SERVER_PACKAGES = ['chef-server', 'chef-server-api'] 
 
-def apt_install(packages, options=[]):
+def apt_install(packages, options=['-y']):
     r"""Takes a list of packages, and optional list of options and installs them using apt-get."""
-    args = ['apt-get', '-y']
+    args = ['apt-get']
     args.extend(options)
     args.append('install')
     args.extend(packages)
@@ -58,8 +58,7 @@ def install_chef_server(opts, args):
 
 
 def add_key(key_url):
-    keyfile = urllib.urlretrieve(key_url)
-    # was keyfile, headers = ..., headers is unused?
+    keyfile, headers = urllib.urlretrieve(key_url)
     args = ['apt-key', 'add', keyfile]
     execute(args)
 
