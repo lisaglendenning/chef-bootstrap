@@ -38,7 +38,7 @@ def untarball(url):
     extracted = os.path.join(tmppath, os.listdir(tmppath)[0])
     return extracted
 
-
+# FIXME: check if this stuff is already installed because it's slooow
 def install_rubygems(opts, args):
     r"""Retrieves and installs rubygems from source."""
     extracted = untarball(RUBYGEMS_SOURCE)
@@ -60,7 +60,7 @@ def bootstrap_chef(opts, args):
     
     # chef-client config
     client_json = tempfile.mkstemp(suffix='.json', prefix='chef-client')
-    os.write.write(client_json[0], CHEF_CLIENT_JSON % opts.url)
+    os.write(client_json[0], CHEF_CLIENT_JSON % opts.url)
     os.close(client_json[0])
     
     util.execute(['chef-solo', '-c', solo_rb[1], 
