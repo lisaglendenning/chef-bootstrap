@@ -110,7 +110,7 @@ def gem_install_chef(opts, args):
     # post bootstrap steps for RHEL derivatives.
     # FIXME: this needs to be more parameterized
     GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
-    execute(['useradd', 'chef'])
+    execute(['/usr/sbin/useradd', 'chef'])
     execute(['chown', 'chef:chef', '-R' '/var/lib/chef'])
     execute(['cp', '%s/distro/redhat/etc/sysconfig/*' % GEMDIR, '/etc/sysconfig'], shell=True)
     execute(['cp', '%s/distro/redhat/etc/init.d/*' % GEMDIR, '/etc/init.d'], shell=True)
