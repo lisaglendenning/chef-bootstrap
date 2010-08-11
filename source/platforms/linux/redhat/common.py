@@ -1,5 +1,5 @@
 
-import subprocess, shutil, time
+import subprocess, shutil, time, os, os.path
 
 from util import execute
 from platforms.linux.common import *
@@ -108,13 +108,26 @@ def gem_install_chef(opts, args):
     bootstrap_chef(opts, args)
     
     # post bootstrap steps for RHEL derivatives.
-    # FIXME: this needs to be more parameterized
+    # FIXME: this needs to be more parameterized and suck less
     GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
-    execute(['/usr/sbin/useradd', 'chef'])
+    outs = execute(['getent', 'password', '|', 'grep', 'chef'],
+                   stdout=subprocess.PIPE,
+                   shell = True)
+    if not outs[0]:
+        execute(['/usr/sbin/useradd', 'chef'])
     execute(['chown', 'chef:chef', '-R', '/var/lib/chef'])
-    execute(['cp', '%s/distro/redhat/etc/sysconfig/*' % GEMDIR, '/etc/sysconfig'], shell=True)
-    execute(['cp', '%s/distro/redhat/etc/init.d/*' % GEMDIR, '/etc/init.d'], shell=True)
-    execute(['cp', '%s/distro/common/man/man1/*' % GEMDIR, '/usr/local/share/man/man1'], shell=True)
-    execute(['cp', '%s/distro/common/man/man8/*' % GEMDIR, '/usr/local/share/man/man8'], shell=True)
+    os.chdir(GEMDIR)
+    path = 'distro/redhat/etc/sysconfig'
+    for f in os.listdir(path):
+        shutil.copy(os.path.join(path, f), '/etc/sysconfig')
+    path = 'distro/redhat/etc/init.d'
+    for f in os.listdir(path):
+        shutil.copy(os.path.join(path, f), '/etc/init.d')
+    path = 'distro/common/man/man1'
+    for f in os.listdir(path):
+        shutil.copy(os.path.join(path, f), '/usr/local/share/man/man1')
+    path = 'distro/common/man/man8'
+    for f in os.listdir(path):
+        shutil.copy(os.path.join(path, f), '/usr/local/share/man/man8')
     execute(['chmod', '+x', '/etc/init.d/chef-*'], shell=True)
 
