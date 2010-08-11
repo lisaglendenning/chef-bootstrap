@@ -61,6 +61,6 @@ def bootstrap_chef(opts, args):
     client_json.close()
     
     util.execute(['chef-solo', '-c', solo_rb.name, 
-                  '-j', client_json.name
+                  '-j', client_json.name,
                   '-r', BOOTSTRAP_SOURCE])
     
