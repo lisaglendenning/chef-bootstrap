@@ -106,4 +106,15 @@ def gem_install_chef(opts, args):
     yum_install(GEM_DEV_TOOLS)
     install_rubygems(opts, args)
     bootstrap_chef(opts, args)
-    # TODO: There are post bootstrap steps for RHEL derivatives.
+    
+    # post bootstrap steps for RHEL derivatives.
+    # FIXME: this needs to be more parameterized
+    GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
+    execute(['useradd', 'chef'])
+    execute(['chown', 'chef:chef', '-R' '/var/lib/chef'])
+    execute(['cp', '%s/distro/redhat/etc/sysconfig/*' % GEMDIR, '/etc/sysconfig'], shell=True)
+    execute(['cp', '%s/distro/redhat/etc/init.d/*' % GEMDIR, '/etc/init.d'], shell=True)
+    execute(['cp', '%s/distro/common/man/man1/*' % GEMDIR, '/usr/local/share/man/man1'], shell=True)
+    execute(['cp', '%s/distro/common/man/man8/*' % GEMDIR, '/usr/local/share/man/man8'], shell=True)
+    execute(['chmod', '+x', '/etc/init.d/chef-*'], shell=True)
+
