@@ -16,12 +16,13 @@ cookbook_path "%s"
 CHEF_CLIENT_JSON = """
 {
   "chef": {
-    "server_url": "%s"
+    "server_url": "%s",
+    "init_style": "init"
   },
   "run_list": [ "recipe[chef::bootstrap_client]" ]
 }
 """
-
+# FIXME: rhels don't have runit, but debians do
 
 def check_version(dist, min):
     version = tuple(dist[1].split('.'))
@@ -42,7 +43,8 @@ def untarball(url):
 def install_rubygems(opts, args):
     r"""Retrieves and installs rubygems from source."""
     try:
-        util.execute(['gem', '--help'])
+        util.execute(['gem', '--help'], , stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE)
     except RuntimeError:    
         extracted = untarball(RUBYGEMS_SOURCE)
         util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
