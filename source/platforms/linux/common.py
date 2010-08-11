@@ -47,7 +47,7 @@ def install_rubygems(opts, args):
         extracted = untarball(RUBYGEMS_SOURCE)
         util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
     
-    outs = util.execute(stdout=subprocess.PIPE)
+    outs = util.execute(['gem', 'list', '--local'], stdout=subprocess.PIPE)
     for line in outs[0].split('\n'):
         if line.startswith('chef'):
             break
