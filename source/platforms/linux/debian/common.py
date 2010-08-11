@@ -11,7 +11,8 @@ CHEF_SERVER_PACKAGES = ['chef-server', 'chef-server-api']
 
 def apt_install(packages, options=[]):
     r"""Takes a list of packages, and optional list of options and installs them using apt-get."""
-    args = ['apt-get', '-y'].extend(options)
+    args = ['apt-get', '-y']
+    args.extend(options)
     args.append('install')
     args.extend(packages)
     execute(args)

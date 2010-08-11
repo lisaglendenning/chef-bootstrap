@@ -2,22 +2,16 @@
 from platforms.linux.common import *
 from platforms.linux.redhat.common import *
 
+
 MIN_VERSION = ('5', '5')
 
 
-def install_repository(opts, args):
-    check_version(opts.dist, MIN_VERSION)
-    
-    for repo in REPOSITORIES:
-        install_repo(repo['url'])
-
-
-def main(*args):
-    if check_fedora(*args):
+def main(opts, args):
+    if check_fedora(opts, args):
         import platforms.linux.fedora.bootstrap as mod
-        mod.main(*args)
+        mod.main(opts, args)
     else:
-        install_repository(*args)
-        install_chef(*args)
-
-
+        check_version(opts.dist, MIN_VERSION)
+        for repo in REPOSITORIES:
+            install_repo(repo['url'])
+        install_chef(opts, args)

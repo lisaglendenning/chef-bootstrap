@@ -12,15 +12,16 @@ def configure(argv):
     parser.add_option("-d", "--dist", dest="dist", metavar="DIST",
                       help="specify os-specific distribution")
     parser.add_option("-s", "--server", dest="server", action="store_true",
-                      default=False, help="install server")
+                      default=False, help="install the Chef server")
+    parser.add_option("-w", "--webui", dest="webui", action="store_true",
+                      default=False, help="install the Chef server webui")
     parser.add_option("-u", "--url", dest="url", metavar="URL",
                       help="specify the Chef server url")
     parser.add_option("-c", "--name", dest="name", metavar="NAME",
                       help="specify the Chef client name")
+    # This option currently isn't used (the latest Chef version is installed)
     parser.add_option("-v", "--version", dest="version", metavar="VERSION",
                       help="specify the Chef version to install")
-    parser.add_option("-w", "--webui", dest="webui", action="store_true",
-                      default=False, help="install webui service")
     return parser.parse_args()
 
 

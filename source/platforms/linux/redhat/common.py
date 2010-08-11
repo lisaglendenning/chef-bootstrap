@@ -31,7 +31,8 @@ CHEF_SERVER_SERVICES = ['couchdb', 'rabbitmq-server', 'chef-solr', 'chef-solr-in
 
 def yum_install(packages, options=[]):
     r"""Takes a list of packages, and optional list of options and installs them using yum."""
-    args = ['yum', '-y'].extend(options)
+    args = ['yum', '-y']
+    args.extend(options)
     args.append('install')
     args.extend(packages)
     execute(args)
@@ -41,8 +42,7 @@ def check_fedora(opts, args):
     return (opts.dist[1], opts.dist[2]) in FEDORA_RELEASES
 
 
-# install repo list
-def install_repo(url):
+def install_remote_rpm(url):
     # already installed ?
     package = url.rsplit('/', 1)[1]
     package_name = package.split('.', 1)[0]
