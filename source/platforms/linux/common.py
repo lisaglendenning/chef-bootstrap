@@ -1,5 +1,5 @@
 
-import urllib, tarfile, tempfile, os, os.path
+import urllib, tarfile, tempfile, os, os.path, subprocess
 
 import util
 
@@ -38,12 +38,21 @@ def untarball(url):
     extracted = os.path.join(tmppath, os.listdir(tmppath)[0])
     return extracted
 
-# FIXME: check if this stuff is already installed because it's slooow
+
 def install_rubygems(opts, args):
     r"""Retrieves and installs rubygems from source."""
-    extracted = untarball(RUBYGEMS_SOURCE)
-    util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
-    util.execute(['gem', 'install', 'chef'])
+    try:
+        util.execute(['gem', '--help'])
+    except RuntimeError:    
+        extracted = untarball(RUBYGEMS_SOURCE)
+        util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
+    
+    outs = util.execute(stdout=subprocess.PIPE)
+    for line in outs[0].split('\n'):
+        if line.startswith('chef'):
+            break
+    else:
+        util.execute(['gem', 'install', 'chef'])
 
 
 # TODO: add functions to bootstrap server/webui also
