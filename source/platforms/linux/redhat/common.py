@@ -130,4 +130,5 @@ def gem_install_chef(opts, args):
     for f in os.listdir(path):
         shutil.copy(os.path.join(path, f), '/usr/local/share/man/man8')
     execute('chmod +x /etc/init.d/chef-*', shell=True)
+    execute(['/sbin/service', 'chef-client', 'start'])
 
