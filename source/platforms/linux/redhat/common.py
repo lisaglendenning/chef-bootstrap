@@ -110,7 +110,7 @@ def gem_install_chef(opts, args):
     # post bootstrap steps for RHEL derivatives.
     # FIXME: this needs to be more parameterized and suck less
     GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
-    outs = execute(['getent', 'password', 'chef'],
+    outs = execute(['getent', 'passwd', 'chef'],
                    stdout=subprocess.PIPE,
                    shell = True)
     if not outs[0]:
