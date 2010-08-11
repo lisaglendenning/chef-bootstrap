@@ -8,5 +8,4 @@ MIN_VERSION = ('8')
 
 def main(*args):
     check_version(opts.dist, MIN_VERSION)
-    install_rubygems(opts, args)
-    bootstrap_chef(opts, args)
+    gem_install_chef(opts, args)

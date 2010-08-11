@@ -2,6 +2,8 @@
 import subprocess, shutil, time
 
 from util import execute
+from platforms.linux.common import *
+
 
 FEDORA_RELEASES = [ 
     ('14', 'Laughlin'),
@@ -27,6 +29,8 @@ CHEF_CLIENT_PACKAGES = ['chef',]
 CHEF_SERVER_PACKAGES = ['chef-server-api']
 CHEF_CLIENT_SERVICES = ['chef-client']
 CHEF_SERVER_SERVICES = ['couchdb', 'rabbitmq-server', 'chef-solr', 'chef-solr-indexer', 'chef-server']
+
+GEM_DEV_TOOLS = ['ruby', 'ruby-shadow', 'ruby-ri', 'ruby-rdoc', 'gcc', 'gcc-c++', 'ruby-devel', 'make']
 
 
 def yum_install(packages, options=[]):
@@ -95,3 +99,11 @@ def start_services(services):
         args = ['/sbin/chkconfig', svc, 'on']
         execute(args)
 
+
+def gem_install_chef(opts, args):
+    r"""Installs chef through a rubygems installation."""
+    # TODO: Gem installation should probably be in opts and merged with install_chef  
+    yum_install(GEM_DEV_TOOLS)
+    install_rubygems(opts, args)
+    bootstrap_chef(opts, args)
+    # TODO: There are post bootstrap steps for RHEL derivatives.
