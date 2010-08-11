@@ -115,6 +115,7 @@ def gem_install_chef(opts, args):
     if not outs[0]:
         execute(['/usr/sbin/useradd', 'chef'])
     execute(['chown', 'chef:chef', '-R', '/var/lib/chef'])
+    execute(['chown', 'chef:chef', '-R', '/var/log/chef'])
     os.chdir(GEMDIR)
     path = 'distro/redhat/etc/sysconfig'
     for f in os.listdir(path):
