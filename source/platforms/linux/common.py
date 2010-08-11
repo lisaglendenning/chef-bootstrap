@@ -10,8 +10,8 @@ import util
 RUBYGEMS_SOURCE = 'http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz'
 BOOTSTRAP_SOURCE = 'http://s3.amazonaws.com/chef-solo/bootstrap-latest.tar.gz'
 CHEF_SOLO_CONFIG = """
-file_cache_path "/tmp/chef-solo"
-cookbook_path "/tmp/chef-solo/cookbooks"
+file_cache_path "%s"
+cookbook_path "%s"
 """
 CHEF_CLIENT_JSON = """
 {
@@ -50,9 +50,12 @@ def install_rubygems(opts, args):
 def bootstrap_chef(opts, args):
     r"""Bootstraps chef from a rubygems installation."""
     
+    # temporary cookbook cache
+    tmppath = tempfile.mkdtemp(prefix='chef-solo')
+    
     # chef-solo config
-    solo_rb = tempfile.mkstmp(suffix='.rb', prefix='chef-solo')
-    os.write(solo_rb[0], CHEF_SOLO_CONFIG)
+    solo_rb = tempfile.mkstemp(suffix='.rb', prefix='chef-solo')
+    os.write(solo_rb[0], CHEF_SOLO_CONFIG % (tmppath, '%s/cookbooks' % tmppath))
     os.close(solo_rb[0])
     
     # chef-client config
