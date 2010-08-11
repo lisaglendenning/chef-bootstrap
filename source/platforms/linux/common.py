@@ -17,7 +17,8 @@ CHEF_CLIENT_JSON = """
 {
   "chef": {
     "server_url": "%s",
-    "init_style": "init"
+    "init_style": "init",
+    "path": "/var/lib/chef"
   },
   "run_list": [ "recipe[chef::bootstrap_client]" ]
 }
@@ -58,6 +59,7 @@ def install_rubygems(opts, args):
 
 
 # TODO: add functions to bootstrap server/webui also
+# FIXME: check if bootstrap has already happened somehow
 def bootstrap_chef(opts, args):
     r"""Bootstraps chef from a rubygems installation."""
     
