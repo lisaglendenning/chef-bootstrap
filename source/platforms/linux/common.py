@@ -51,16 +51,16 @@ def bootstrap_chef(opts, args):
     r"""Bootstraps chef from a rubygems installation."""
     
     # chef-solo config
-    solo_rb = tempfile.NamedTemporaryFile(suffix='.rb', prefix='chef-solo')
-    solo_rb.write(CHEF_SOLO_CONFIG)
-    solo_rb.close()
+    solo_rb = tempfile.mkstmp(suffix='.rb', prefix='chef-solo')
+    os.write(solo_rb[0], CHEF_SOLO_CONFIG)
+    os.close(solo_rb[0])
     
     # chef-client config
-    client_json = tempfile.NamedTemporaryFile(suffix='.json', prefix='chef-client')
-    client_json.write(CHEF_CLIENT_JSON % opts.url)
-    client_json.close()
+    client_json = tempfile.mkstemp(suffix='.json', prefix='chef-client')
+    os.write.write(client_json[0], CHEF_CLIENT_JSON % opts.url)
+    os.close(client_json[0])
     
-    util.execute(['chef-solo', '-c', solo_rb.name, 
-                  '-j', client_json.name,
+    util.execute(['chef-solo', '-c', solo_rb[1], 
+                  '-j', client_json[1],
                   '-r', BOOTSTRAP_SOURCE])
     
