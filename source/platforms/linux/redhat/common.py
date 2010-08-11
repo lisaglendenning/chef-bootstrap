@@ -111,8 +111,7 @@ def gem_install_chef(opts, args):
     # FIXME: this needs to be more parameterized and suck less
     GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
     outs = execute(['getent', 'passwd', 'chef'],
-                   stdout=subprocess.PIPE,
-                   shell = True)
+                   stdout=subprocess.PIPE)
     if not outs[0]:
         execute(['/usr/sbin/useradd', 'chef'])
     execute(['chown', 'chef:chef', '-R', '/var/lib/chef'])
@@ -129,5 +128,5 @@ def gem_install_chef(opts, args):
     path = 'distro/common/man/man8'
     for f in os.listdir(path):
         shutil.copy(os.path.join(path, f), '/usr/local/share/man/man8')
-    execute(['chmod', '+x', '/etc/init.d/chef-*'], shell=True)
+    execute('chmod +x /etc/init.d/chef-*', shell=True)
 
