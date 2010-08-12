@@ -46,7 +46,7 @@ def install_rubygems(opts, args):
     try:
         util.execute(['gem', '--help'], stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE)
-    except RuntimeError:    
+    except OSError:    
         extracted = untarball(RUBYGEMS_SOURCE)
         util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
     
