@@ -76,6 +76,9 @@ def bootstrap_chef(opts, args):
     os.write(client_json[0], CHEF_CLIENT_JSON % opts.url)
     os.close(client_json[0])
     
+    # the bootstrap tries to make this directory but /srv/chef doesn't exist
+    util.execute(['mkdir', '-p', '/srv/chef/run'])
+    
     util.execute(['chef-solo', '-c', solo_rb[1], 
                   '-j', client_json[1],
                   '-r', BOOTSTRAP_SOURCE])
