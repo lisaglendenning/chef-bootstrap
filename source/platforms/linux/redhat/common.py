@@ -110,10 +110,21 @@ def gem_install_chef(opts, args):
     # post bootstrap steps for RHEL derivatives.
     # FIXME: this needs to be more parameterized and suck less
     GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
+    
+    # FIXME: getent outputs nothing but apparently returns 2, causing python to get mad.
+    # A different way of detecting whether the user exists might be necessary.
+    """ 
     outs = execute(['getent', 'passwd', 'chef'],
                    stdout=subprocess.PIPE)
     if not outs[0]:
         execute(['/usr/sbin/useradd', 'chef'])
+    """
+    # This works for now.
+    try:
+        execute(['/usr/sbin/useradd', 'chef'])
+    except RuntimeError:
+        print "chef user already exists"
+        
     execute(['chown', 'chef:chef', '-R', '/var/lib/chef'])
     execute(['chown', 'chef:chef', '-R', '/var/log/chef'])
     os.chdir(GEMDIR)
