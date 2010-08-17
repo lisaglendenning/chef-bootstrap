@@ -14,10 +14,12 @@ def execute(args, input=None, **kwargs):
 
 
 def guess_os():
+    r"""Detect the OS"""
     return platform.system().lower()
 
 
 def guess_dist(os):
+    r"""Detect the OS distribution"""
     if os == 'linux':
         return platform.dist()
     raise ValueError(os)
