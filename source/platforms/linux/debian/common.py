@@ -1,3 +1,4 @@
+r"""Common functions and constants for Debian based distributions"""
 
 import os.path, subprocess, urllib
 
@@ -10,15 +11,16 @@ CHEF_CLIENT_PACKAGES = ['chef',]
 CHEF_SERVER_PACKAGES = ['chef-server', 'chef-server-api'] 
 
 def apt_install(packages, options=['-y']):
-    r"""Takes a list of packages, and optional list of options and installs them using apt-get."""
+    r"""Installs list of packages, with an optional list of options using apt-get."""
     args = ['apt-get']
     args.extend(options)
     args.append('install')
     args.extend(packages)
     execute(args)
 
-# modify local repo list
+
 def add_repo(repo):
+    r"""modify local repo list"""
     source = '/etc/apt/sources.list.d/opscode.list'
     if os.path.exists(source):
         return
@@ -34,6 +36,7 @@ def install_chef(opts, args):
 
 
 def install_chef_client(opts, args):
+    r"""Installs a chef client through apt-get"""
     # Preseed
     apt_install(['debconf'])
     preseed = [['chef', 'chef/chef_server_url', 'string', opts.url]]
@@ -43,12 +46,14 @@ def install_chef_client(opts, args):
     os.environ['DEBIAN_FRONTEND'] = 'noninteractive'
     apt_install(CHEF_CLIENT_PACKAGES)
 
-# one of chef-server and chef-server-api is installed depending on whether webui is to be run
+
 def install_chef_server(opts, args):
+    r"""Installs a chef server through apt-get"""
     # preseed settings:
     # chef-solr/amqp_password - password for chef vhost in RabbitMQ.
     # chef-server-webui/admin_password - password for "admin" user in Chef Server WebUI, must be 6 characters.
     
+    # one of chef-server and chef-server-api is installed depending on whether webui is to be run
     if opts.webui:
         server_packages = [CHEF_SERVER_PACKAGES[0]]
     else:
@@ -58,13 +63,14 @@ def install_chef_server(opts, args):
 
 
 def add_key(key_url):
+    r"""Adds a key from a url to apt"""
     keyfile, headers = urllib.urlretrieve(key_url)
     args = ['apt-key', 'add', keyfile]
     execute(args)
 
 
 def apt_update():
-    # update packages
+    r"""update apt packages"""
     args = ['apt-get', 'update']
     execute(args)
 

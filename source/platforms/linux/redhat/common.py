@@ -1,3 +1,4 @@
+r"""Common functions and constants for RHEL and derivatives"""
 
 import subprocess, shutil, time, os, os.path
 
@@ -43,10 +44,14 @@ def yum_install(packages, options=['-y']):
 
 
 def check_fedora(opts, args):
+    r"""Fedora distributions are sometimes identified as 'redhat' by the 
+    platform module. This checks by the version number and codename
+    """
     return (opts.dist[1], opts.dist[2]) in FEDORA_RELEASES
 
 
 def install_remote_rpm(url):
+    r"""Installs an rpm repository given the url."""
     # already installed ?
     package = url.rsplit('/', 1)[1]
     package_name = package.split('.', 1)[0]
@@ -65,6 +70,7 @@ def install_chef(opts, args):
 
 
 def install_chef_client(opts, args):
+    r"""installs a chef client with RPMs"""
     yum_install(CHEF_CLIENT_PACKAGES)
     
     # Set name explicitly
@@ -85,6 +91,7 @@ def install_chef_client(opts, args):
 
 
 def install_chef_server(opts, args):
+    r"""installs a chef server with RPMs"""
     yum_install(CHEF_SERVER_PACKAGES)
     start_services(CHEF_SERVER_SERVICES)
     if opts.webui:
@@ -93,6 +100,7 @@ def install_chef_server(opts, args):
 
 
 def start_services(services):
+    r"""starts services given in a list"""
     for svc in services:
         args = ['/sbin/service', svc, 'start']
         execute(args)
@@ -111,19 +119,11 @@ def gem_install_chef(opts, args):
     # FIXME: this needs to be more parameterized and suck less
     GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
     
-    # FIXME: getent outputs nothing but apparently returns 2, causing python to get mad.
-    # A different way of detecting whether the user exists might be necessary.
-    """ 
-    outs = execute(['getent', 'passwd', 'chef'],
-                   stdout=subprocess.PIPE)
-    if not outs[0]:
-        execute(['/usr/sbin/useradd', 'chef'])
-    """
-    # This works for now.
+    # FIXME: This is a quick fix to a previous chef user check, might need improvement
     try:
         execute(['/usr/sbin/useradd', 'chef'])
     except RuntimeError:
-        print "chef user already exists"
+        print "/usr/sbin/useradd chef failed, assuming user exists"
         
     execute(['chown', 'chef:chef', '-R', '/var/lib/chef'])
     execute(['chown', 'chef:chef', '-R', '/var/log/chef'])

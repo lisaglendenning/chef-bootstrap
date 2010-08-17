@@ -1,4 +1,7 @@
 #!/usr/bin/env python2.4
+r"""Primary bootstrap module. Parses arguments and proceeds to the os-level
+bootstrap module.
+"""
 
 import sys, os.path, optparse
 
@@ -6,6 +9,7 @@ import util
 
 
 def configure(argv):
+    r"""Parses command-line arguments"""
     parser = optparse.OptionParser()
     parser.add_option("-o", "--os", dest="os", metavar="OS",
                       help="specify one of [linux] to override detection")

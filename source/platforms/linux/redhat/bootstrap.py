@@ -1,3 +1,4 @@
+r"""chef bootstrap module for redhat distributions"""
 
 from platforms.linux.common import *
 from platforms.linux.redhat.common import *

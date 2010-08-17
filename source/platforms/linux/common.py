@@ -1,11 +1,10 @@
+r"""Common functions shared by linux distributions, including installing 
+rubygems and bootstrapping a chef rubygems installation
+"""
 
 import urllib, tarfile, tempfile, os, os.path, subprocess
 
 import util
-
-#
-# Rubygems install
-#
 
 RUBYGEMS_SOURCE = 'http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz'
 BOOTSTRAP_SOURCE = 'http://s3.amazonaws.com/chef-solo/bootstrap-latest.tar.gz'
@@ -26,12 +25,14 @@ CHEF_CLIENT_JSON = """
 # FIXME: rhels don't have runit, but debians do
 
 def check_version(dist, min):
+    r"""check a distribution version meets a minimum requirement"""
     version = tuple(dist[1].split('.'))
     if version < min:
         raise RuntimeError('%s version %s < %s' % (dist[0], version, min))
 
 
 def untarball(url):
+    r"""Retrieve and extract a tarball"""
     path, header = urllib.urlretrieve(url)
     t = tarfile.open(path, 'r')
     tmppath = tempfile.mkdtemp()
@@ -43,6 +44,7 @@ def untarball(url):
 
 def install_rubygems(opts, args):
     r"""Retrieves and installs rubygems from source."""
+    # checks if gem is already installed
     try:
         util.execute(['gem', '--help'], stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE)
@@ -50,6 +52,7 @@ def install_rubygems(opts, args):
         extracted = untarball(RUBYGEMS_SOURCE)
         util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
     
+    # checks if chef gem is already installed.
     outs = util.execute(['gem', 'list', '--local'], stdout=subprocess.PIPE)
     for line in outs[0].split('\n'):
         if line.startswith('chef'):

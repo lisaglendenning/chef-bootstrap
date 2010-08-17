@@ -1,3 +1,4 @@
+r"""chef bootstrap module for Debian distributions"""
 
 from platforms.linux.common import *
 from platforms.linux.debian.common import *

@@ -1,3 +1,4 @@
+r"""Determines distribution and proceeds to appropriate module"""
 
 import sys, os.path
 
@@ -16,6 +17,7 @@ def main(opts, args):
     else:
         opts.dist = util.guess_dist(opts.os)
         
+    # attempts to import and run the bootstrap module for the specific distribution
     try:
         package = __name__.rsplit('.', 1)[0]
         modname = opts.dist[0].lower()
