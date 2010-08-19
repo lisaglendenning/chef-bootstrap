@@ -38,7 +38,7 @@ def untarball(url):
     tmppath = tempfile.mkdtemp()
     #t.extractall(tmppath) # not available until 2.5
     for member in t.getmembers():
-        t.extract(member)
+        t.extract(member, path=tmppath)
     # this assumes that the tarball unpacks nicely into a subdirectory
     extracted = os.path.join(tmppath, os.listdir(tmppath)[0])
     return extracted

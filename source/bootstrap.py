@@ -23,9 +23,8 @@ def configure(argv):
                       help="specify the Chef server url")
     parser.add_option("-c", "--name", dest="name", metavar="NAME",
                       help="specify the Chef client name")
-    # This option currently isn't used (the latest Chef version is installed)
-    parser.add_option("-v", "--version", dest="version", metavar="VERSION",
-                      help="specify the Chef version to install")
+    parser.add_option("-v", "--validation", dest="validation", metavar="FILE",
+                      help="use as the Chef server validation key")
     return parser.parse_args()
 
 
