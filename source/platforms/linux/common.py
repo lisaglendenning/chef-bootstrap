@@ -36,7 +36,9 @@ def untarball(url):
     path, header = urllib.urlretrieve(url)
     t = tarfile.open(path, 'r')
     tmppath = tempfile.mkdtemp()
-    t.extractall(tmppath)
+    #t.extractall(tmppath) # not available until 2.5
+    for member in t.getmembers():
+        t.extract(member)
     # this assumes that the tarball unpacks nicely into a subdirectory
     extracted = os.path.join(tmppath, os.listdir(tmppath)[0])
     return extracted

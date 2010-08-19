@@ -51,7 +51,7 @@ def check_fedora(opts, args):
 
 
 def install_remote_rpm(url):
-    r"""Installs an rpm repository given the url."""
+    r"""Installs an rpm from a url."""
     # already installed ?
     package = url.rsplit('/', 1)[1]
     package_name = package.split('.', 1)[0]
