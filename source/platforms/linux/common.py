@@ -12,12 +12,12 @@ CHEF_SOLO_CONFIG = """
 file_cache_path "%s"
 cookbook_path "%s"
 """
+# The bootstrap cookbook ignores chef:path, so the install path will be /srv/chef
 CHEF_CLIENT_JSON = """
 {
   "chef": {
     "server_url": "%s",
-    "init_style": "init",
-    "path": "/var/lib/chef"
+    "init_style": "init"
   },
   "run_list": [ "recipe[chef::bootstrap_client]" ]
 }
@@ -48,13 +48,14 @@ def install_rubygems(opts, args):
     r"""Retrieves and installs rubygems from source."""
     # checks if gem is already installed
     try:
-        util.execute(['gem', '--help'], stdout=subprocess.PIPE,
+        util.execute(['which', 'gem'], stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE)
     except OSError:    
         extracted = untarball(RUBYGEMS_SOURCE)
         util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
     
     # checks if chef gem is already installed.
+    # Note: will this will fail if the gem installation partially succeeded?
     outs = util.execute(['gem', 'list', '--local'], stdout=subprocess.PIPE)
     for line in outs[0].split('\n'):
         if line.startswith('chef'):
@@ -80,10 +81,7 @@ def bootstrap_chef(opts, args):
     client_json = tempfile.mkstemp(suffix='.json', prefix='chef-client')
     os.write(client_json[0], CHEF_CLIENT_JSON % opts.url)
     os.close(client_json[0])
-    
-    # the bootstrap tries to make this directory but /srv/chef doesn't exist
-    util.execute(['mkdir', '-p', '/srv/chef/run'])
-    
+
     util.execute(['chef-solo', '-c', solo_rb[1], 
                   '-j', client_json[1],
                   '-r', BOOTSTRAP_SOURCE])
