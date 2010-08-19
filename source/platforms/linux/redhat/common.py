@@ -2,8 +2,8 @@ r"""Common functions and constants for RHEL and derivatives"""
 
 import subprocess, shutil, time, os, os.path
 
-from util import execute
-from platforms.linux.common import *
+import util
+import platforms.linux.common
 
 
 FEDORA_RELEASES = [ 
@@ -40,7 +40,7 @@ def yum_install(packages, options=['-y']):
     args.extend(options)
     args.append('install')
     args.extend(packages)
-    execute(args)
+    util.execute(args)
 
 
 def check_fedora(opts, args):
@@ -56,11 +56,11 @@ def install_remote_rpm(url):
     package = url.rsplit('/', 1)[1]
     package_name = package.split('.', 1)[0]
     args = ['rpm', '-qa']
-    installed = execute(args, stdout=subprocess.PIPE)[0].split()
+    installed = util.execute(args, stdout=subprocess.PIPE)[0].split()
     if package_name in installed:
         return
     args = ['rpm', '-Uvh', url]
-    execute(args)
+    util.execute(args)
 
 
 def install_chef(opts, args):
@@ -102,44 +102,55 @@ def install_chef_server(opts, args):
 def start_services(services):
     r"""starts services given in a list"""
     for svc in services:
-        args = ['/sbin/service', svc, 'start']
-        execute(args)
+        args = ['/sbin/service', svc, 'status']
+        try:
+            util.execute(args)
+        except RuntimeError:
+            args = ['/sbin/service', svc, 'start']
+            util.execute(args)
         args = ['/sbin/chkconfig', svc, 'on']
-        execute(args)
+        util.execute(args)
 
 
 def gem_install_chef(opts, args):
     r"""Installs chef through a rubygems installation."""
     # TODO: Gem installation should probably be in opts and merged with install_chef  
     yum_install(GEM_DEV_TOOLS)
-    install_rubygems(opts, args)
-    bootstrap_chef(opts, args)
+    platforms.linux.common.install_rubygems(opts, args)
+    platforms.linux.common.gem_install_chef(opts, args)
+    platforms.linux.common.gem_bootstrap_chef(opts, args)
     
     # post bootstrap steps for RHEL derivatives.
-    # FIXME: this needs to be more parameterized and suck less
-    GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
+    # FIXME: this needs to be more parameterized
     
     # FIXME: This is a quick fix to a previous chef user check, might need improvement
+#    try:
+#        util.execute(['/usr/sbin/useradd', 'chef'])
+#    except RuntimeError:
+#        print "/usr/sbin/useradd chef failed, assuming user exists"
     try:
-        execute(['/usr/sbin/useradd', 'chef'])
+        util.execute(['getent', 'passwd', 'chef'])
     except RuntimeError:
-        print "/usr/sbin/useradd chef failed, assuming user exists"
+        util.execute(['/usr/sbin/useradd', 'chef'])
         
-    execute(['chown', 'chef:chef', '-R', '/var/lib/chef'])
-    execute(['chown', 'chef:chef', '-R', '/var/log/chef'])
+    util.execute(['chown', '-R', 'chef:chef', '/srv/chef'])
+    
+    # FIXME: this will break with other version of chef or gems
+    GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
     os.chdir(GEMDIR)
-    path = 'distro/redhat/etc/sysconfig'
-    for f in os.listdir(path):
-        shutil.copy(os.path.join(path, f), '/etc/sysconfig')
-    path = 'distro/redhat/etc/init.d'
-    for f in os.listdir(path):
-        shutil.copy(os.path.join(path, f), '/etc/init.d')
-    path = 'distro/common/man/man1'
-    for f in os.listdir(path):
-        shutil.copy(os.path.join(path, f), '/usr/local/share/man/man1')
-    path = 'distro/common/man/man8'
-    for f in os.listdir(path):
-        shutil.copy(os.path.join(path, f), '/usr/local/share/man/man8')
-    execute('chmod +x /etc/init.d/chef-*', shell=True)
-    execute(['/sbin/service', 'chef-client', 'start'])
+    for source, target in [('distro/redhat/etc/sysconfig', '/etc/sysconfig'),
+                           ('distro/redhat/etc/init.d', '/etc/init.d'),
+                           ('distro/common/man/man1', '/usr/local/share/man/man1'),
+                           ('distro/common/man/man8', '/usr/local/share/man/man8'),]:
+        for f in os.listdir(source):
+            shutil.copy(os.path.join(source, f), target)
+    util.execute('chmod +x /etc/init.d/chef-*', shell=True)
+    
+    services = ['chef-client']
+    if opts.server:
+        services.append(['chef-server'])
+        if opts.webui:
+            services.append(['chef-server-webui'])
+    start_services(services)
+
 

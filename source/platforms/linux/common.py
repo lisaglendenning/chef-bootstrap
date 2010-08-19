@@ -22,6 +22,16 @@ CHEF_CLIENT_JSON = """
   "run_list": [ "recipe[chef::bootstrap_client]" ]
 }
 """
+CHEF_SERVER_JSON = """
+{
+  "chef": {
+    "server_url": "%s",
+    "init_style": "init",
+    "webui_enabled": "%s"
+  },
+  "run_list": [ "recipe[chef::bootstrap_server]" ]
+}
+"""
 # FIXME: rhels don't have runit, but debians do
 
 def check_version(dist, min):
@@ -53,20 +63,21 @@ def install_rubygems(opts, args):
     except OSError:    
         extracted = untarball(RUBYGEMS_SOURCE)
         util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
+
+
+def gem_install_chef(opts, args):
     
     # checks if chef gem is already installed.
-    # Note: will this will fail if the gem installation partially succeeded?
     outs = util.execute(['gem', 'list', '--local'], stdout=subprocess.PIPE)
     for line in outs[0].split('\n'):
         if line.startswith('chef'):
             break
     else:
         util.execute(['gem', 'install', 'chef'])
+    
 
-
-# TODO: add functions to bootstrap server/webui also
-# FIXME: check if bootstrap has already happened somehow
-def bootstrap_chef(opts, args):
+# FIXME: for now we assume that the bootstrap recipe is idempotent
+def gem_bootstrap_chef(opts, args):
     r"""Bootstraps chef from a rubygems installation."""
     
     # temporary cookbook cache
@@ -85,4 +96,19 @@ def bootstrap_chef(opts, args):
     util.execute(['chef-solo', '-c', solo_rb[1], 
                   '-j', client_json[1],
                   '-r', BOOTSTRAP_SOURCE])
+    
+    # chef-server config
+    if opts.server:
+        if opts.webui:
+            webui = 'true'
+        else:
+            webui = 'false'
+        server_json = tempfile.mkstemp(suffix='.json', prefix='chef-server')
+        os.write(server_json[0], CHEF_SERVER_JSON % (opts.url, webui))
+        os.close(server_json[0])
+        
+        util.execute(['chef-solo', '-c', solo_rb[1], 
+                      '-j', server_json[1],
+                      '-r', BOOTSTRAP_SOURCE])
+        
     
