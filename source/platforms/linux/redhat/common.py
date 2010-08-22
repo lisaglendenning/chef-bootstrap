@@ -137,20 +137,28 @@ def gem_install_chef(opts, args):
     
     # FIXME: this will break with other version of chef or gems
     GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
+    COPY_INFO = [('distro/redhat/etc/', '/etc/', ['sysconfig','init.d']),
+                 ('distro/common/man/', '/usr/local/share/man/', ['man1','man8'])]
     os.chdir(GEMDIR)
-    for source, target in [('distro/redhat/etc/sysconfig', '/etc/sysconfig'),
-                           ('distro/redhat/etc/init.d', '/etc/init.d'),
-                           ('distro/common/man/man1', '/usr/local/share/man/man1'),
-                           ('distro/common/man/man8', '/usr/local/share/man/man8'),]:
-        for f in os.listdir(source):
-            shutil.copy(os.path.join(source, f), target)
+    for source_base, target_base, directories in COPY_INFO:
+        for dir in directories:
+            source = source_base + dir
+            target = target_base + dir
+            for f in os.listdir(source):
+                shutil.copy(os.path.join(source, f), target)
     util.execute('chmod +x /etc/init.d/chef-*', shell=True)
     
-    services = ['chef-client']
+    services = CHEF_CLIENT_SERVICES
     if opts.server:
-        services.append(['chef-server'])
+        # Server services need to be added to chkconfig in addition to being started
+        # Note: untested
+        server_services = ['chef-server','chef-solr', 'chef-solr-indexer']
         if opts.webui:
-            services.append(['chef-server-webui'])
+            server_services.append('chef-server-webui')
+        for svc in server_services:
+            args = ['/sbin/chkconfig', '--add', svc]
+            util.execute(args)
+        services.extend(server_services)
     start_services(services)
 
 
