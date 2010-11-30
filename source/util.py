@@ -1,8 +1,6 @@
 r"""General utility functions""" 
 
-import subprocess, optparse
-
-platform
+import subprocess, optparse, platform
 
 
 def configure(argv):

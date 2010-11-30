@@ -23,7 +23,7 @@ FEDORA_RELEASES = [
     ('1', 'Yarrow')]
 
 REPOSITORIES = [{'name': 'epel', 
-                 'url':'http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-3.noarch.rpm'},
+                 'url':'http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm'},
                 {'name': 'elff',
                  'url': 'http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm'}]
 CHEF_CLIENT_PACKAGES = ['chef',]
