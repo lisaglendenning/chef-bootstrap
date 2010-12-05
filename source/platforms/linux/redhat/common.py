@@ -87,6 +87,26 @@ def install_chef_client(opts, args):
         f = open(path, 'w')
         f.writelines(lines)
         f.close()
+    
+    # Bootstrap parameters
+    if opts.validation or opts.url:
+        path = '/etc/chef/client.rb'
+        backup = '%s.%d' % (path, int(time.time()))
+        shutil.copy(path, backup)
+        f = open(path, 'r')
+        lines = f.readlines()
+        f.close()
+        for i in xrange(len(lines)):
+            if opts.validation:
+                if lines[i].find('validation_key') != -1:
+                    lines[i] = "validation_key \t\"%s\"\n" % opts.validation
+            if opts.url:
+                if lines[i].find('chef_server_url') != -1:
+                    lines[i] = "chef_server_url \t\"%s\"\n" % opts.url
+        f = open(path, 'w')
+        f.writelines(lines)
+        f.close()
+    
     start_services(CHEF_CLIENT_SERVICES)
 
 
