@@ -97,6 +97,8 @@ def install_chef_client(opts, args):
         lines = f.readlines()
         f.close()
         for i in xrange(len(lines)):
+            if lines[i][0] == '#':
+                continue
             if opts.validation:
                 if lines[i].find('validation_key') != -1:
                     lines[i] = "validation_key \t\"%s\"\n" % opts.validation
