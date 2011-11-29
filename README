@@ -1,0 +1,11 @@
+This project includes a set of python scripts to automate installation of Chef on a variety of Linux platforms.
+
+Quickstart:
+> cd source && sudo python bootstrap.py
+
+Contributors:
+Patrick Williams
+Lisa Glendenning
+
+Tip:
+On linux, to avoid setting the name of a new client node manually, ensure that hostname --fqdn works correctly.

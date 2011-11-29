@@ -1,12 +1,15 @@
 r"""Common functions and constants for RHEL and derivatives"""
 
-import subprocess, shutil, time, os, os.path
+import shutil, os.path, tempfile, stat
 
-import util
-import platforms.linux.common
+from platforms.linux.common import call, fetch, untarball, \
+CHEF_VERSION_MIN, BOOTSTRAP_URL, CHEF_SERVER_BOOTSTRAP_TEXT, \
+install_source_rubygems, install_gem, bootstrap_chef_solo
 
 
 FEDORA_RELEASES = [ 
+    ('16', 'Verne'),
+    ('15', 'Lovelock'),
     ('14', 'Laughlin'),
     ('13', 'Goddard'),
     ('12', 'Constantine'),
@@ -22,25 +25,26 @@ FEDORA_RELEASES = [
     ('2', 'Tettnang'),
     ('1', 'Yarrow')]
 
-REPOSITORIES = [{'name': 'epel', 
-                 'url':'http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm'},
-                {'name': 'elff',
-                 'url': 'http://download.elff.bravenet.com/5/i386/elff-release-5-3.noarch.rpm'}]
-CHEF_CLIENT_PACKAGES = ['chef',]
-CHEF_SERVER_PACKAGES = ['chef-server-api']
-CHEF_CLIENT_SERVICES = ['chef-client']
-CHEF_SERVER_SERVICES = ['couchdb', 'rabbitmq-server', 'chef-solr', 'chef-solr-indexer', 'chef-server']
+AEGISCO_URL = 'http://rpm.aegisco.com/aegisco/el5/aegisco.repo'
+AEGISCO_FILE = '/etc/yum.repos.d/aegisco.repo'
+RBEL = {'5': {'name': 'rbel5-release-1.0-2.el5',
+              'url': 'http://rbel.frameos.org/rbel5',},
+        '6': {'name': '??',
+              'url': 'http://rbel.frameos.org/rbel6',},}
+RUBY_PACKAGES = ['ruby', 
+            'ruby-devel', 
+            'ruby-ri', 
+            'ruby-rdoc', 
+            'ruby-shadow',] 
+SUPPORT_PACKAGES = ['gdbm',
+            'gcc', 
+            'gcc-c++', 
+            'automake',
+            'autoconf',
+            'make', 
+            'curl',
+            'dmidecode',]
 
-GEM_DEV_TOOLS = ['ruby', 'ruby-shadow', 'ruby-ri', 'ruby-rdoc', 'gcc', 'gcc-c++', 'ruby-devel', 'make']
-
-
-def yum_install(packages, options=['-y']):
-    r"""Takes a list of packages, and optional list of options and installs them using yum."""
-    args = ['yum']
-    args.extend(options)
-    args.append('install')
-    args.extend(packages)
-    util.execute(args)
 
 
 def check_fedora(opts, args):
@@ -50,137 +54,104 @@ def check_fedora(opts, args):
     return (opts.dist[1], opts.dist[2]) in FEDORA_RELEASES
 
 
-def install_remote_rpm(url):
+def install_remote_rpm(url, name=None):
     r"""Installs an rpm from a url."""
     # already installed ?
-    package = url.rsplit('/', 1)[1]
-    package_name = package.split('.', 1)[0]
+    if name is None:
+        name = url.rsplit('/', 1)[1]
     args = ['rpm', '-qa']
-    installed = util.execute(args, stdout=subprocess.PIPE)[0].split()
-    if package_name in installed:
+    err, (stdout, stderr) = call(args, 0, stdout=True)
+    if name in stdout.split():
         return
     args = ['rpm', '-Uvh', url]
-    util.execute(args)
+    call(args, 0)
+
+
+def install_package(package, opts=('-y',), arch=None):
+    r"""Takes a package and optional list of options and installs it using yum."""
+    # already installed?
+    result = call(('yum', 'list', '-q', 'installed', package))
+    if result[0] == 0:
+        return
+    # check for available architecture 
+    if arch is not None:
+        for a in (arch, 'noarch'):
+            p = '%s.%s' % (package, a)
+            result = call(('yum', 'list', '-q', 'available', package))
+            if result[0] == 0:
+                package = p
+                break
+        else:
+            raise RuntimeError('Unable to find package %s for architecture %s' % (package, arch))
+    args = ['yum', 'install']
+    args += opts        
+    args += (package,)
+    call(args, 0)
+
+
+def install_support(opts, args):
+    version = tuple(opts.dist[1].split('.'))
+
+    # Install repositories
+    if version[0] == '5':
+        # needed for Ruby 1.8.7
+        fetch(AEGISCO_URL, AEGISCO_FILE, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IWUSR)
+    if version[0] > '5' or opts.server:
+        rbel = RBEL[version[0]]
+        install_remote_rpm(rbel['url'], rbel['name'])
+    
+    # Install support packages
+    for pkg in SUPPORT_PACKAGES:
+        install_package(pkg, arch=opts.arch)
+    if version[0] == '5':
+        ruby_repo = 'aegisco'
+    else:
+        ruby_repo = 'rbel6'
+    for pkg in RUBY_PACKAGES:
+        install_package(pkg, ('-y', '--disablerepo=*', '--enablerepo=%s' % ruby_repo), arch=opts.arch)
+
+    install_source_rubygems()
+
+
+# 11/28/2011 WORKAROUND: for issue COOK-528
+def bootstrap_chef_server(opts, args):
+    tmpcache, tmpconf = bootstrap_chef_solo()
+    
+    # temporary attribute file
+    tmpattr = tempfile.mkstemp(suffix='.json', prefix='chef')
+    attrs = {}
+    attrs['server'] = opts.url
+    if opts.webui:
+        attrs['webui'] = 'true'
+    else:
+        attrs['webui'] = 'false'
+    if opts.dist[0] in ('redhat', 'fedora'):
+        attrs['init'] = 'init'
+    else:
+        attrs['init'] = 'runit'
+    content = CHEF_SERVER_BOOTSTRAP_TEXT % attrs
+    os.write(tmpattr[0], content)
+    os.close(tmpattr[0])
+    
+    # WORKAROUND
+    untarball(BOOTSTRAP_URL, tmpcache)
+    source = os.path.join(os.path.dirname(__file__), 'gecode.rb')
+    dest = '%s/cookbooks/gecode/recipes/default.rb' % tmpcache
+    os.rename(dest, '%s.orig' % dest)
+    shutil.copy(source, dest)
+    
+    # execute bootstrap
+    args = ['chef-solo', '-c', tmpconf, '-j', tmpattr[1]]
+    call(args, 0)
 
 
 def install_chef(opts, args):
-    install_chef_client(opts, args)
+    install_gem('chef', CHEF_VERSION_MIN)
     if opts.server:
-        install_chef_server(opts, args)
-
-
-def install_chef_client(opts, args):
-    r"""installs a chef client with RPMs"""
-    yum_install(CHEF_CLIENT_PACKAGES)
-    
-    # Set name explicitly
-    if opts.name:
-        path = '/etc/sysconfig/chef-client'
-        backup = '%s.%d' % (path, int(time.time()))
-        shutil.copy(path, backup)
-        f = open(path, 'r')
-        lines = f.readlines()
-        f.close()
-        for i in xrange(len(lines)):
-            if lines[i].find('OPTIONS') != -1:
-                lines[i] = "OPTIONS=\"-N %s\"\n" % opts.name
-        f = open(path, 'w')
-        f.writelines(lines)
-        f.close()
-    
-    # Bootstrap parameters
-    if opts.validation or opts.url:
-        path = '/etc/chef/client.rb'
-        backup = '%s.%d' % (path, int(time.time()))
-        shutil.copy(path, backup)
-        f = open(path, 'r')
-        lines = f.readlines()
-        f.close()
-        for i in xrange(len(lines)):
-            if lines[i][0] == '#':
-                continue
-            if opts.validation:
-                if lines[i].find('validation_key') != -1:
-                    lines[i] = "validation_key \t\"%s\"\n" % opts.validation
-            if opts.url:
-                if lines[i].find('chef_server_url') != -1:
-                    lines[i] = "chef_server_url \t\"%s\"\n" % opts.url
-        f = open(path, 'w')
-        f.writelines(lines)
-        f.close()
-    
-    start_services(CHEF_CLIENT_SERVICES)
-
-
-def install_chef_server(opts, args):
-    r"""installs a chef server with RPMs"""
-    yum_install(CHEF_SERVER_PACKAGES)
-    start_services(CHEF_SERVER_SERVICES)
-    if opts.webui:
-        yum_install(['chef-server-webui'])
-        start_services(['chef-server-webui'])
-
-
-def start_services(services):
-    r"""starts services given in a list"""
-    for svc in services:
-        args = ['/sbin/service', svc, 'status']
-        try:
-            util.execute(args)
-        except RuntimeError:
-            args = ['/sbin/service', svc, 'start']
-            util.execute(args)
-        args = ['/sbin/chkconfig', svc, 'on']
-        util.execute(args)
-
-
-def gem_install_chef(opts, args):
-    r"""Installs chef through a rubygems installation."""
-    # TODO: Gem installation should probably be in opts and merged with install_chef  
-    yum_install(GEM_DEV_TOOLS)
-    platforms.linux.common.install_rubygems(opts, args)
-    platforms.linux.common.gem_install_chef(opts, args)
-    platforms.linux.common.gem_bootstrap_chef(opts, args)
-    
-    # post bootstrap steps for RHEL derivatives.
-    # FIXME: this needs to be more parameterized
-    
-    # FIXME: This is a quick fix to a previous chef user check, might need improvement
-#    try:
-#        util.execute(['/usr/sbin/useradd', 'chef'])
-#    except RuntimeError:
-#        print "/usr/sbin/useradd chef failed, assuming user exists"
-    try:
-        util.execute(['getent', 'passwd', 'chef'])
-    except RuntimeError:
-        util.execute(['/usr/sbin/useradd', 'chef'])
-        
-    util.execute(['chown', '-R', 'chef:chef', '/srv/chef'])
-    
-    # FIXME: this will break with other version of chef or gems
-    GEMDIR = "/usr/lib/ruby/gems/1.8/gems/chef-0.9.8"
-    COPY_INFO = [('distro/redhat/etc/', '/etc/', ['sysconfig','init.d']),
-                 ('distro/common/man/', '/usr/local/share/man/', ['man1','man8'])]
-    os.chdir(GEMDIR)
-    for source_base, target_base, directories in COPY_INFO:
-        for dir in directories:
-            source = source_base + dir
-            target = target_base + dir
-            for f in os.listdir(source):
-                shutil.copy(os.path.join(source, f), target)
-    util.execute('chmod +x /etc/init.d/chef-*', shell=True)
-    
-    services = CHEF_CLIENT_SERVICES
-    if opts.server:
-        # Server services need to be added to chkconfig in addition to being started
-        # Note: untested
-        server_services = ['chef-server','chef-solr', 'chef-solr-indexer']
+        bootstrap_chef_server(opts, args)
+        # the bootstrap script doesn't seem to install webui gem?
         if opts.webui:
-            server_services.append('chef-server-webui')
-        for svc in server_services:
-            args = ['/sbin/chkconfig', '--add', svc]
-            util.execute(args)
-        services.extend(server_services)
-    start_services(services)
-
-
+            install_gem('chef-server-webui', CHEF_VERSION_MIN)
+            result = call(['/sbin/service', 'chef-server-webui', 'status'])
+            if result[0] != 0:
+                call(['/sbin/service', 'chef-server-webui', 'restart'], 0)

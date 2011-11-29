@@ -2,37 +2,48 @@ r"""Common functions shared by linux distributions, including installing
 rubygems and bootstrapping a chef rubygems installation
 """
 
-import urllib, tarfile, tempfile, os, os.path, subprocess
+import urllib, tarfile, tempfile, os, os.path, subprocess, shutil, time, stat
 
-import util
+CHEF_VERSION_MIN = '0.10.4'
 
-RUBYGEMS_SOURCE = 'http://production.cf.rubygems.org/rubygems/rubygems-1.3.7.tgz'
-BOOTSTRAP_SOURCE = 'http://s3.amazonaws.com/chef-solo/bootstrap-latest.tar.gz'
-CHEF_SOLO_CONFIG = """
-file_cache_path "%s"
-cookbook_path "%s"
+RUBYGEMS_VERSION = '1.8.10'
+RUBYGEMS_URL = 'http://production.cf.rubygems.org/rubygems/rubygems-%s.tgz' % RUBYGEMS_VERSION
+RUBYGEMS_PATH = 'rubygems-%s' % RUBYGEMS_VERSION
+
+BOOTSTRAP_URL = 'http://s3.amazonaws.com/chef-solo/bootstrap-latest.tar.gz'
+CHEF_SOLO_BOOTSTRAP_TEXT = """
+file_cache_path  '%(path)s'
+cookbook_path    '%(path)s/cookbooks'
 """
-# The bootstrap cookbook ignores chef:path, so the install path will be /srv/chef
-CHEF_CLIENT_JSON = """
+CHEF_SERVER_BOOTSTRAP_TEXT = """
 {
   "chef": {
-    "server_url": "%s",
-    "init_style": "init"
+    "server_url": "%(server)s",
+    "init_style": "%(init)s",
+    "webui_enabled": "%(webui)s"
   },
-  "run_list": [ "recipe[chef::bootstrap_client]" ]
+  "run_list": [ "recipe[chef-server::rubygems-install]" ]
 }
 """
-CHEF_SERVER_JSON = """
-{
-  "chef": {
-    "server_url": "%s",
-    "init_style": "init",
-    "webui_enabled": "%s"
-  },
-  "run_list": [ "recipe[chef::bootstrap_server]" ]
-}
-"""
-# FIXME: rhels don't have runit, but debians do
+
+
+def call(args, expected_err=None, stdout=None, stderr=None, input=None, **kwargs):
+    r"""Execute a subprocess."""
+    for arg, name in ((stdout, 'stdout'), (stderr, 'stderr'), (input, 'stdin')):
+        if arg is True:
+            kwargs[name] = subprocess.PIPE
+    child = subprocess.Popen(args, **kwargs)
+    if (stdout, stderr, input) != (None, None, None):
+        output = child.communicate(input)
+    else:
+        output = None
+        child.wait()
+    result = (child.returncode, output)
+    if expected_err is not None:
+        if expected_err != child.returncode:
+            raise RuntimeError('%s returned %s' % (args, result))
+    return result
+
 
 def check_version(dist, min):
     r"""check a distribution version meets a minimum requirement"""
@@ -41,74 +52,93 @@ def check_version(dist, min):
         raise RuntimeError('%s version %s < %s' % (dist[0], version, min))
 
 
-def untarball(url):
+def fetch(url, path=None, mode=None):
+    r"""Save a copy of a remote file."""
+    file, header = urllib.urlretrieve(url)
+    if path is not None:
+        shutil.copy(file, path)
+        file = path
+    if mode is not None:
+        os.chmod(file, mode)
+    return file
+
+
+def untarball(url, path=None):
     r"""Retrieve and extract a tarball"""
-    path, header = urllib.urlretrieve(url)
-    t = tarfile.open(path, 'r')
-    tmppath = tempfile.mkdtemp()
-    #t.extractall(tmppath) # not available until 2.5
+    fetched = fetch(url)
+    t = tarfile.open(fetched, 'r')
+    if path is None:
+        path = tempfile.mkdtemp()
+    #extractall() not available until 2.5
     for member in t.getmembers():
-        t.extract(member, path=tmppath)
-    # this assumes that the tarball unpacks nicely into a subdirectory
-    extracted = os.path.join(tmppath, os.listdir(tmppath)[0])
-    return extracted
+        t.extract(member, path=path)
+    return path
 
 
-def install_rubygems(opts, args):
-    r"""Retrieves and installs rubygems from source."""
-    # checks if gem is already installed
-    try:
-        util.execute(['which', 'gem'], stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE)
-    except RuntimeError:    
-        extracted = untarball(RUBYGEMS_SOURCE)
-        util.execute(['ruby','%s/setup.rb' % extracted, '--no-format-executable'])
+def install_source_rubygems():
+    r"""Installs rubygems from source."""
+    # check installed version
+    result = call(('gem', '-v'), stdout=True)
+    if result[0] != 0 or result[1][0] < RUBYGEMS_VERSION:
+        path = os.path.join(untarball(RUBYGEMS_URL), RUBYGEMS_PATH)
+        args = ['ruby', 'setup.rb', '--no-format-executable']
+        call(args, 0, cwd=path)
 
 
-def gem_install_chef(opts, args):
+def install_gem(name, version=None):
+    args = ['gem', 'list', '--installed', name]
+    result = call(args)
+    # already installed?
+    if result[0] == 0:
+        if version is None:
+            return
+        # version check
+        args = ['gem', 'list', '--local', '--versions', name]
+        result = call(args, stdout=True)
+        for line in result[1][0].split('\n'):
+            words = line.split()
+            if words[0] == name:
+                installed = words[1].strip('()')
+                if installed >= version:
+                    return
+                break
+    args = ['gem', 'install', name, '--no-ri', '--no-rdoc']
+    call(args, 0)
+
+
+def bootstrap_chef_solo():
+    # temporary cache for bootstrap
+    tmpcache = tempfile.mkdtemp(prefix='chef-solo')
     
-    # checks if chef gem is already installed.
-    outs = util.execute(['gem', 'list', '--local'], stdout=subprocess.PIPE)
-    for line in outs[0].split('\n'):
-        if line.startswith('chef'):
-            break
+    # temporary configure file
+    tmpconf = tempfile.mkstemp(suffix='.rb', prefix='chef-solo')
+    content = CHEF_SOLO_BOOTSTRAP_TEXT % {'path': tmpcache}
+    os.write(tmpconf[0], content)
+    os.close(tmpconf[0])
+    
+    return tmpcache, tmpconf[1]
+
+
+# TODO: for now we assume that the bootstrap recipe is idempotent
+def bootstrap_chef_server(opts, args):
+    tmpcache, tmpconf = bootstrap_chef_solo()
+    
+    # temporary attribute file
+    tmpattr = tempfile.mkstemp(suffix='.json', prefix='chef')
+    attrs = {}
+    attrs['server'] = opts.url
+    if opts.webui:
+        attrs['webui'] = 'true'
     else:
-        util.execute(['gem', 'install', 'chef'])
+        attrs['webui'] = 'false'
+    if opts.dist[0] in ('redhat', 'fedora'):
+        attrs['init'] = 'init'
+    else:
+        attrs['init'] = 'runit'
+    content = CHEF_SERVER_BOOTSTRAP_TEXT % attrs
+    os.write(tmpattr[0], content)
+    os.close(tmpattr[0])
     
-
-# FIXME: for now we assume that the bootstrap recipe is idempotent
-def gem_bootstrap_chef(opts, args):
-    r"""Bootstraps chef from a rubygems installation."""
-    
-    # temporary cookbook cache
-    tmppath = tempfile.mkdtemp(prefix='chef-solo')
-    
-    # chef-solo config
-    solo_rb = tempfile.mkstemp(suffix='.rb', prefix='chef-solo')
-    os.write(solo_rb[0], CHEF_SOLO_CONFIG % (tmppath, '%s/cookbooks' % tmppath))
-    os.close(solo_rb[0])
-    
-    # chef-client config
-    client_json = tempfile.mkstemp(suffix='.json', prefix='chef-client')
-    os.write(client_json[0], CHEF_CLIENT_JSON % opts.url)
-    os.close(client_json[0])
-
-    util.execute(['chef-solo', '-c', solo_rb[1], 
-                  '-j', client_json[1],
-                  '-r', BOOTSTRAP_SOURCE])
-    
-    # chef-server config
-    if opts.server:
-        if opts.webui:
-            webui = 'true'
-        else:
-            webui = 'false'
-        server_json = tempfile.mkstemp(suffix='.json', prefix='chef-server')
-        os.write(server_json[0], CHEF_SERVER_JSON % (opts.url, webui))
-        os.close(server_json[0])
-        
-        util.execute(['chef-solo', '-c', solo_rb[1], 
-                      '-j', server_json[1],
-                      '-r', BOOTSTRAP_SOURCE])
-        
-    
+    # execute bootstrap
+    args = ['chef-solo', '-c', tmpconf, '-j', tmpattr[1], '-r', BOOTSTRAP_URL]
+    call(args, 0)
