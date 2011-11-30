@@ -34,8 +34,9 @@ RBEL = {'5': {'name': 'rbel5-release-1.0-2.el5',
 RUBY_PACKAGES = ['ruby', 
             'ruby-devel', 
             'ruby-ri', 
-            'ruby-rdoc', 
-            'ruby-shadow',] 
+            'ruby-rdoc', ] 
+# PROBLEM: ruby-shadow package not available from AEGISCO or RBEL5
+# soo...not installing it?
 SUPPORT_PACKAGES = ['gdbm',
             'gcc', 
             'gcc-c++', 
@@ -149,9 +150,3 @@ def install_chef(opts, args):
     install_gem('chef', CHEF_VERSION_MIN)
     if opts.server:
         bootstrap_chef_server(opts, args)
-        # the bootstrap script doesn't seem to install webui gem?
-        if opts.webui:
-            install_gem('chef-server-webui', CHEF_VERSION_MIN)
-            result = call(['/sbin/service', 'chef-server-webui', 'status'])
-            if result[0] != 0:
-                call(['/sbin/service', 'chef-server-webui', 'restart'], 0)

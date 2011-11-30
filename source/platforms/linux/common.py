@@ -17,7 +17,7 @@ cookbook_path    '%(path)s/cookbooks'
 """
 CHEF_SERVER_BOOTSTRAP_TEXT = """
 {
-  "chef": {
+  "chef_server": {
     "server_url": "%(server)s",
     "init_style": "%(init)s",
     "webui_enabled": "%(webui)s"
@@ -78,16 +78,21 @@ def untarball(url, path=None):
 def install_source_rubygems():
     r"""Installs rubygems from source."""
     # check installed version
-    result = call(('gem', '-v'), stdout=True)
-    if result[0] != 0 or result[1][0] < RUBYGEMS_VERSION:
-        path = os.path.join(untarball(RUBYGEMS_URL), RUBYGEMS_PATH)
-        args = ['ruby', 'setup.rb', '--no-format-executable']
-        call(args, 0, cwd=path)
+    result = call(('which', 'gem'))
+    if result[0] == 0:
+        result = call(('gem', '-v'), stdout=True)
+        if result[1][0] >= RUBYGEMS_VERSION:
+            return
+    path = os.path.join(untarball(RUBYGEMS_URL), RUBYGEMS_PATH)
+    args = ['ruby', 'setup.rb', '--no-format-executable']
+    call(args, 0, cwd=path)
 
 
 def install_gem(name, version=None):
-    args = ['gem', 'list', '--installed', name]
-    result = call(args)
+    result = call(('which', 'gem'))
+    if result[0] != 0:
+        raise RuntimeError('Missing RubyGems installation')
+    result = call(('gem', 'list', '--installed', name))
     # already installed?
     if result[0] == 0:
         if version is None:
